@@ -22,7 +22,7 @@ public class Superblock
     public void WriteTo(ContainerStream stream)
     {
         byte[] buf = new byte[stream.BlockSize];
-            
+        
         // Signature (4 bytes)
         Array.Copy(System.Text.Encoding.ASCII.GetBytes(Signature), 0, buf, 0, 4);
 
@@ -43,15 +43,12 @@ public class Superblock
         {
             return null;
         }
-
-        var spb = new Superblock
+        
+        return new Superblock
         {
             BlockSize = BitConverter.ToInt32(buf, 4),
             BlockCount = BitConverter.ToInt32(buf, 8),
             MetadataStartBlock = BitConverter.ToInt32(buf, 12)
         };
-
-        return spb;
     }
-
 }

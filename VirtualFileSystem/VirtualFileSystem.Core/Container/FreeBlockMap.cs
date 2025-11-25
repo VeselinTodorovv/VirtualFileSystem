@@ -15,10 +15,10 @@ public class FreeBlockMap(ContainerStream stream, int blockCount, int startBlock
             
             _map[i] = 1;
             Save();
-                
+            
             return i;
         }
-
+        
         return -1;
     }
 

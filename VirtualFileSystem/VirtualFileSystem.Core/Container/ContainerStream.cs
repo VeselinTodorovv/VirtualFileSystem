@@ -1,24 +1,17 @@
 ﻿namespace VirtualFileSystem.Core.Container;
 
-public class ContainerStream
+public class ContainerStream(string path, int blockSize) : IDisposable
 {
-    private readonly FileStream _stream;
-    
-    public int BlockSize { get; }
-    public long Length => _stream.Length;
-
-    public ContainerStream(string path, int blockSize)
-    {
-        BlockSize = blockSize;
-        
-        _stream = new FileStream(
+    private readonly FileStream _stream = new(
         path,
         FileMode.OpenOrCreate,
         FileAccess.ReadWrite,
         FileShare.None
-        );
-    }
+    );
     
+    public int BlockSize { get; } = blockSize;
+    public long Length => _stream.Length;
+
     public long OffsetOfBlock(int blockIndex)
     {
         return (long)blockIndex * BlockSize;
@@ -45,5 +38,10 @@ public class ContainerStream
     public void WriteBlock(int blockIndex, byte[] buffer)
     {
         WriteBytes(OffsetOfBlock(blockIndex), buffer, BlockSize);
+    }
+    
+    public void Dispose()
+    {
+        _stream.Dispose();
     }
 }

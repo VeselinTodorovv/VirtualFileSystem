@@ -1,71 +1,49 @@
 ﻿namespace VirtualFileSystem.Core.Container;
 
-public class ContainerStream : IDisposable
+public class ContainerStream
 {
     private readonly FileStream _stream;
     
-    public string Path { get; }
     public int BlockSize { get; }
+    public long Length => _stream.Length;
 
     public ContainerStream(string path, int blockSize)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(blockSize);
-
-        Path = path;
         BlockSize = blockSize;
         
-        _stream = new FileStream(Path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        _stream = new FileStream(
+        path,
+        FileMode.OpenOrCreate,
+        FileAccess.ReadWrite,
+        FileShare.None
+        );
     }
     
-    public long Length => _stream.Length;
-    public bool IsEmpty => _stream.Length == 0;
-
-    public void Flush()
+    public long OffsetOfBlock(int blockIndex)
     {
+        return (long)blockIndex * BlockSize;
+    }
+    
+    public void ReadBytes(long offset, byte[] buffer, int count)
+    {
+        _stream.Seek(offset, SeekOrigin.Begin);
+        _stream.ReadExactly(buffer, 0, count);
+    }
+    
+    public void WriteBytes(long offset, byte[] buffer, int count)
+    {
+        _stream.Seek(offset, SeekOrigin.Begin);
+        _stream.Write(buffer, 0, count);
         _stream.Flush();
     }
     
-    public void ReadAt(long offset, byte[] buffer, int count)
+    public void ReadBlock(int blockIndex, byte[] buffer)
     {
-        ArgumentNullException.ThrowIfNull(buffer);
-        ArgumentOutOfRangeException.ThrowIfNegative(offset);
-
-        if (count < 0 || count > buffer.Length)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count));
-        }
-
-        _stream.Seek(offset, SeekOrigin.Begin);
-
-        int readTotal = 0;
-        while (readTotal < count)
-        {
-            int read = _stream.Read(buffer, readTotal, count - readTotal);
-            if (read == 0)
-            {
-                throw new EndOfStreamException("Unexpected end of container while reading.");
-            }
-            
-            readTotal += read;
-        }
-    }
-    
-    public void WriteAt(long offset, byte[] buffer, int count)
-    {
-        ArgumentNullException.ThrowIfNull(buffer);
-        ArgumentOutOfRangeException.ThrowIfNegative(offset);
-
-        if (count < 0 || count > buffer.Length)
-        {
-            throw new ArgumentOutOfRangeException(nameof(count));
-        }
-
-        _stream.Seek(offset, SeekOrigin.Begin);
-        _stream.Write(buffer, 0, count);
+        ReadBytes(OffsetOfBlock(blockIndex), buffer, BlockSize);
     }
 
-    public void Dispose()
+    public void WriteBlock(int blockIndex, byte[] buffer)
     {
-        _stream.Dispose();
+        WriteBytes(OffsetOfBlock(blockIndex), buffer, BlockSize);
     }
 }

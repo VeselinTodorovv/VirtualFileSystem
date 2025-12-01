@@ -13,9 +13,9 @@ public class FileSystem
     public FileSystem(string containerPath, int blockSize)
     {
         _container = new ContainerStream(containerPath, blockSize);
-
+        
         var loaded = Superblock.LoadFrom(_container);
-
+        
         if (loaded == null)
         {
             FormatNewContainer(blockSize);
@@ -41,7 +41,7 @@ public class FileSystem
         
         _superblock = new Superblock(blockSize, containerBlocks, metadataStartBlock);
         _superblock.WriteTo(_container);
-
+        
         _metadata = new MetadataTable(_container, _superblock.MetadataStartBlock);
         _freeBlocks = new FreeBlockMap(_container, containerBlocks, metadataStartBlock + 1);
         
@@ -53,8 +53,6 @@ public class FileSystem
         _freeBlocks.Save();
     }
     
-    // TODO: Implement Cpout, Ls, Rm
-
     public void Cpin(string externalPath, string internalName)
     {
         if (!File.Exists(externalPath))
@@ -107,4 +105,41 @@ public class FileSystem
         meta.BlockCount = blocksWritten;
         _metadata.SaveEntry(freeIndex, meta);
     }
+    
+    public void Cpout(string internalName, string destinationPath)
+    {
+        int index = _metadata.FindByName(internalName);
+        if (index == -1)
+        {
+            throw new FileNotFoundException(internalName);
+        }
+        
+        var meta = _metadata.LoadEntry(index);
+        
+        using FileStream fileStream = new(destinationPath, FileMode.Create, FileAccess.Write);
+        
+        byte[] buffer = new byte[_superblock.BlockSize];
+        int remaining = meta.Size;
+        
+        for (int i = 0; i < meta.BlockCount; i++)
+        {
+            _container.ReadBlock(meta.Blocks[i], buffer);
+            
+            int toWrite = Math.Min(remaining, buffer.Length);
+            fileStream.Write(buffer, 0, toWrite);
+            remaining -= toWrite;
+            
+            if (remaining <= 0)
+            {
+                break;
+            }
+        }
+    }
+
+    public FileMetadata[] Ls()
+    {
+        return _metadata.ListFiles();
+    }
+    
+    // TODO: Implement Rm
 }

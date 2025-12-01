@@ -35,7 +35,7 @@ public class FileSystem
         const int containerBlocks = 10_000; // TODO: Adjusted or pass as param, try to find a cleaner variant
         
         // block 0 = superblock
-        // block 1 = metadata entries (large region)
+        // block 1 = metadata entries
         // block 2 = free-block map
         const int metadataStartBlock = 1;
         
@@ -53,5 +53,58 @@ public class FileSystem
         _freeBlocks.Save();
     }
     
-    // TODO: Implement Cpin, Cpout, Ls, Rm
+    // TODO: Implement Cpout, Ls, Rm
+
+    public void Cpin(string externalPath, string internalName)
+    {
+        if (!File.Exists(externalPath))
+        {
+            throw new FileNotFoundException(externalPath);
+        }
+        
+        using FileStream fileStream = new(externalPath, FileMode.Open, FileAccess.Read);
+        
+        int freeIndex = _metadata.FindFreeIndex();
+        if (freeIndex == -1)
+        {
+            throw new ArgumentException($"No free metadata entries");
+        }
+        
+        var meta = new FileMetadata
+        {
+            IsUsed = true,
+            Name = internalName,
+            Size = (int)fileStream.Length
+        };
+        
+        byte[] buffer = new byte[_superblock.BlockSize];
+        
+        int blocksWritten = 0;
+        int bytesRead;
+        
+        while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            // If last block has fewer bytes, then zero-fill
+            if (bytesRead < buffer.Length)
+            {
+                for (int i = bytesRead; i < buffer.Length; i++)
+                {
+                    buffer[i] = 0;
+                }
+            }
+            
+            int blockIndex = _freeBlocks.Allocate();
+            if (blockIndex == -1)
+            {
+                throw new Exception("No free blocks available.");
+            }
+            
+            _container.WriteBlock(blockIndex, buffer);
+            
+            meta.Blocks[blocksWritten++] = blockIndex;
+        }
+
+        meta.BlockCount = blocksWritten;
+        _metadata.SaveEntry(freeIndex, meta);
+    }
 }

@@ -135,11 +135,28 @@ public class FileSystem
             }
         }
     }
-
+    
     public FileMetadata[] Ls()
     {
         return _metadata.ListFiles();
     }
     
-    // TODO: Implement Rm
+    public void Rm(string internalName)
+    {
+        int index = _metadata.FindByName(internalName);
+        if (index == -1)
+        {
+            throw new FileNotFoundException(internalName);
+        }
+        
+        var meta = _metadata.LoadEntry(index);
+
+        for (int i = 0; i < meta.BlockCount; i++)
+        {
+            _freeBlocks.Free(meta.Blocks[i]);
+        }
+        
+        meta.IsUsed = false;
+        _metadata.SaveEntry(index, meta);
+    }
 }

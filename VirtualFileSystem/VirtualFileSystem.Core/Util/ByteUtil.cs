@@ -6,7 +6,7 @@ public static class ByteUtil
     {
         // Null to empty string
         value ??= string.Empty;
-
+        
         int count = value.Length;
         if (count > maxLength)
         {
@@ -18,17 +18,17 @@ public static class ByteUtil
         {
             buffer[offset + i] = (byte)value[i];
         }
-
+        
         for (int i = 0; i < maxLength; i++)
         {
             buffer[offset + i] = 0;
         }
     }
-
+    
     public static string ReadFixedString(byte[] buffer, int offset, int maxLength)
     {
         int length = 0;
-
+        
         for (int i = 0; i < maxLength; i++)
         {
             if (buffer[offset + i] == 0)
@@ -38,13 +38,13 @@ public static class ByteUtil
             
             length++;
         }
-
+        
         char[] chars = new char[length];
         for (int i = 0; i < length; i++)
         {
             chars[i] = (char)buffer[offset + i];
         }
-
+        
         return new string(chars);
     }
 }

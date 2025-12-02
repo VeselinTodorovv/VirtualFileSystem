@@ -9,7 +9,7 @@ public class FileMetadata
     public int Size;
     public int BlockCount;
     public int[] Blocks;
-
+    
     public FileMetadata()
     {
         Blocks = new int[128];
@@ -21,7 +21,7 @@ public class FileMetadata
         
         buffer[0] = (byte)(IsUsed ? 1 : 0);
         
-        ByteUtil.WriteFixedString(Name ?? "", buffer, 1, 32);
+        ByteUtil.WriteFixedString(Name, buffer, 1, 32);
         
         BitConverter.GetBytes(Size).CopyTo(buffer, 33);
         BitConverter.GetBytes(BlockCount).CopyTo(buffer, 37);

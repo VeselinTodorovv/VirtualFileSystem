@@ -45,7 +45,7 @@ public class FileSystem
         _metadata = new MetadataTable(_container, _superblock.MetadataStartBlock);
         _freeBlocks = new FreeBlockMap(_container, containerBlocks, metadataStartBlock + 1);
         
-        // Block 0 (superblock), 1 (metadata), 2 (bitmap) - mark as used
+        // Mark as used
         _freeBlocks.Load();
         _freeBlocks.Allocate(); // block 0
         _freeBlocks.Allocate(); // block 1
@@ -65,7 +65,7 @@ public class FileSystem
         int freeIndex = _metadata.FindFreeIndex();
         if (freeIndex == -1)
         {
-            throw new ArgumentException($"No free metadata entries");
+            throw new ArgumentException("No free metadata entries");
         }
         
         var meta = new FileMetadata
@@ -82,7 +82,6 @@ public class FileSystem
         
         while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
         {
-            // If last block has fewer bytes, then zero-fill
             if (bytesRead < buffer.Length)
             {
                 for (int i = bytesRead; i < buffer.Length; i++)

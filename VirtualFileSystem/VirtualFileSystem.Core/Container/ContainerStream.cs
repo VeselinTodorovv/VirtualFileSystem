@@ -11,7 +11,7 @@ public class ContainerStream(string path, int blockSize) : IDisposable
     
     public int BlockSize { get; } = blockSize;
     public long Length => _stream.Length;
-
+    
     public long OffsetOfBlock(int blockIndex)
     {
         return (long)blockIndex * BlockSize;
@@ -32,12 +32,14 @@ public class ContainerStream(string path, int blockSize) : IDisposable
     
     public void ReadBlock(int blockIndex, byte[] buffer)
     {
-        ReadBytes(OffsetOfBlock(blockIndex), buffer, BlockSize);
+        var offsetOfBlock = OffsetOfBlock(blockIndex);
+        ReadBytes(offsetOfBlock, buffer, BlockSize);
     }
-
+    
     public void WriteBlock(int blockIndex, byte[] buffer)
     {
-        WriteBytes(OffsetOfBlock(blockIndex), buffer, BlockSize);
+        var offsetOfBlock = OffsetOfBlock(blockIndex);
+        WriteBytes(offsetOfBlock, buffer, BlockSize);
     }
     
     public void Dispose()

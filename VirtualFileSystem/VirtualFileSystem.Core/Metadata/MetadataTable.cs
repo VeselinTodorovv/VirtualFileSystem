@@ -5,15 +5,14 @@ namespace VirtualFileSystem.Core.Metadata;
 
 public class MetadataTable(ContainerStream stream, int startBlock)
 {
-
     private const int EntrySize = 256;
     private const int EntryCount = 256;
-
+    
     private long OffsetOf(int index)
     {
         return stream.OffsetOfBlock(startBlock) + index * EntrySize;
     }
-
+    
     public FileMetadata LoadEntry(int index)
     {
         byte[] buffer = new byte[EntrySize];

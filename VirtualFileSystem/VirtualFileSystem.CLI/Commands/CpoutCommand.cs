@@ -18,7 +18,7 @@ public class CpoutCommand : ICommand
         
         try
         {
-            fs.Cpout(args[0], args[1]);
+            fs.Cpout(args[1], args[2]);
             Console.WriteLine($"[OK] Extracted '{args[1]}' to '{args[2]}'.");
         }
         catch (Exception e)

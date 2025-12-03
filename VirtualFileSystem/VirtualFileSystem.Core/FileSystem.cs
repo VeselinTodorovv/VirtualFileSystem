@@ -36,7 +36,6 @@ public class FileSystem
         }
         else
         {
-            _superblock = loaded;
             MountExistingContainer(loaded);
         }
     }

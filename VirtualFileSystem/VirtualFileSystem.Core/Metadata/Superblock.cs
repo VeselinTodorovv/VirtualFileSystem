@@ -35,6 +35,11 @@ public class Superblock
     
     public static Superblock? LoadFrom(ContainerStream stream)
     {
+        if (stream.Length < stream.BlockSize)
+        {
+            return null;
+        }
+        
         byte[] buf = new byte[stream.BlockSize];
         stream.ReadBlock(0, buf);
         

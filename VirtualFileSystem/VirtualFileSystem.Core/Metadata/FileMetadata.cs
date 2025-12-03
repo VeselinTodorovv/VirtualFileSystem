@@ -8,12 +8,7 @@ public class FileMetadata
     public string Name = "";
     public int Size;
     public int BlockCount;
-    public int[] Blocks;
-    
-    public FileMetadata()
-    {
-        Blocks = new int[128];
-    }
+    public readonly int[] Blocks = new int[48];
     
     public byte[] ToBytes()
     {

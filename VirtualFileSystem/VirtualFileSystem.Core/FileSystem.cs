@@ -10,6 +10,9 @@ public class FileSystem
     private MetadataTable _metadata = null!;
     private FreeBlockMap _freeBlocks = null!;
     
+    private const int EntrySize = 256;
+    private const int EntryCount = 256;
+    
     public FileSystem(string containerPath, int blockSize)
     {
         _container = new ContainerStream(containerPath, blockSize);
@@ -23,8 +26,15 @@ public class FileSystem
         else
         {
             _superblock = loaded;
-            _metadata = new MetadataTable(_container, _superblock.MetadataStartBlock);
-            _freeBlocks = new FreeBlockMap(_container, _superblock.BlockCount, _superblock.MetadataStartBlock + 1);
+            
+            const int metadataSize = EntrySize * EntryCount;
+            int metadataBlocks = (metadataSize + _superblock.BlockSize - 1) / _superblock.BlockSize;
+            
+            int metadataStartBlock = _superblock.MetadataStartBlock;
+            int freeBlockMapStartBlock = metadataStartBlock + metadataBlocks;
+            
+            _metadata = new MetadataTable(_container, metadataStartBlock);
+            _freeBlocks = new FreeBlockMap(_container, _superblock.BlockCount, freeBlockMapStartBlock);
             
             _freeBlocks.Load();
         }
@@ -32,24 +42,56 @@ public class FileSystem
     
     private void FormatNewContainer(int blockSize)
     {
-        const int containerBlocks = 10_000; // TODO: Adjusted or pass as param, try to find a cleaner variant
+        const int containerBlocks = 4096; // 16 MB disk
         
-        // block 0 = superblock
-        // block 1 = metadata entries
-        // block 2 = free-block map
+        const int metadataSize = EntrySize * EntryCount;
+        int metadataBlocks = (metadataSize + blockSize - 1) / blockSize;
         const int metadataStartBlock = 1;
+        
+        int freeBlockMapStartBlock = metadataStartBlock + metadataBlocks;
         
         _superblock = new Superblock(blockSize, containerBlocks, metadataStartBlock);
         _superblock.WriteTo(_container);
         
-        _metadata = new MetadataTable(_container, _superblock.MetadataStartBlock);
-        _freeBlocks = new FreeBlockMap(_container, containerBlocks, metadataStartBlock + 1);
+        _metadata = new MetadataTable(_container, metadataStartBlock);
+        _freeBlocks = new FreeBlockMap(_container, containerBlocks, freeBlockMapStartBlock);
         
-        // Mark as used
+        // Zero metadata region
+        byte[] zeroBlock = new byte[blockSize];
+        for (int i = 0; i < metadataBlocks; i++)
+        {
+            _container.WriteBlock(metadataStartBlock + i, zeroBlock);
+        }
+        
+        // Zero bitmap region (1 byte per block)
+        var zeroBitmap = new byte[containerBlocks];
+        var offsetOfBlock = _container.OffsetOfBlock(freeBlockMapStartBlock);
+        
+        _container.WriteBytes(
+            offsetOfBlock,
+            zeroBitmap,
+            zeroBitmap.Length
+        );
+        
+        var fullSize = (long)containerBlocks * blockSize;
+        _container.WriteBytes(fullSize - 1, [0], 1);
+        
         _freeBlocks.Load();
-        _freeBlocks.Allocate(); // block 0
-        _freeBlocks.Allocate(); // block 1
-        _freeBlocks.Allocate(); // block 2
+        
+        _freeBlocks.Allocate(); // block 0, superblock
+        
+        for (int i = 0; i < metadataBlocks; i++)
+        {
+            _freeBlocks.Allocate(); // Metadata blocks
+        }
+        
+        // Bitmap blocks
+        int bitmapBlocks = (containerBlocks + blockSize - 1) / blockSize;
+        for (int i = 0; i < bitmapBlocks; i++)
+        {
+            _freeBlocks.Allocate();
+        }
+        
         _freeBlocks.Save();
     }
     

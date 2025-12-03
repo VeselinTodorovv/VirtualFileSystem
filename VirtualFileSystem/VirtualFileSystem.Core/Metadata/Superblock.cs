@@ -10,7 +10,7 @@ public class Superblock
     public int BlockCount;
     public int MetadataStartBlock;
     
-    public Superblock() { }
+    private Superblock() { }
     
     public Superblock(int blockSize, int blockCount, int metadataStartBlock)
     {

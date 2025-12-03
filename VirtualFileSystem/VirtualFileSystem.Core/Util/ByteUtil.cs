@@ -4,24 +4,22 @@ public static class ByteUtil
 {
     public static void WriteFixedString(string? value, byte[] buffer, int offset, int maxLength)
     {
-        // Null to empty string
-        value ??= string.Empty;
-        
-        int count = value.Length;
-        if (count > maxLength)
+        if (value == null)
         {
-            count = maxLength;
+            return;
         }
         
-        // ASCII bytes
-        for (int i = 0; i < count; i++)
-        {
-            buffer[offset + i] = (byte)value[i];
-        }
+        byte[] src = System.Text.Encoding.ASCII.GetBytes(value);
         
-        for (int i = 0; i < maxLength; i++)
+        int count = Math.Min(src.Length, maxLength);
+        Array.Copy(src, 0, buffer, offset, count);
+        
+        int offset1 = offset + count;
+        int length = offset + maxLength;
+        
+        for (int i = offset1; i < length; i++)
         {
-            buffer[offset + i] = 0;
+            buffer[i] = 0;
         }
     }
     

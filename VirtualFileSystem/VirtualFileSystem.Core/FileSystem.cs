@@ -100,7 +100,7 @@ public class FileSystem
             
             meta.Blocks[blocksWritten++] = blockIndex;
         }
-
+        
         meta.BlockCount = blocksWritten;
         _metadata.SaveEntry(freeIndex, meta);
     }
@@ -149,7 +149,7 @@ public class FileSystem
         }
         
         var meta = _metadata.LoadEntry(index);
-
+        
         for (int i = 0; i < meta.BlockCount; i++)
         {
             _freeBlocks.Free(meta.Blocks[i]);

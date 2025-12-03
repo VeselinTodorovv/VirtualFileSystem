@@ -6,4 +6,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\VirtualFileSystem.Core\VirtualFileSystem.Core.csproj" />
+    </ItemGroup>
+
 </Project>

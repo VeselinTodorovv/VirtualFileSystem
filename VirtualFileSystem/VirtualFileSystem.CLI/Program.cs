@@ -1,10 +1,20 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using System.Globalization;
 using VirtualFileSystem.API;
+using VirtualFileSystem.CLI.Commands;
 
 namespace VirtualFileSystem.CLI;
 
 internal static class Program
 {
+    // TODO: Implement Own Dictionary
+    private static readonly Dictionary<string, ICommand> Commands = new()
+    {
+        ["cpin"] = new CpinCommand(),
+        ["cpout"] = new CpoutCommand(),
+        ["ls"] = new LsCommand(),
+        ["rm"] = new RmCommand(),
+    };
+    
     public static void Main(string[] args)
     {
         if (args.Length == 0)
@@ -13,70 +23,30 @@ internal static class Program
             return;
         }
         
-        var command = args[0];
+        var cmd = args[0];
         
-        const string containerPath = "container.vfs"; // adjustable
-        const int blockSize = 4096;
-        var fs = new FileSystemService(containerPath, blockSize);
-        
-        switch (command)
+        if (!Commands.TryGetValue(cmd, out var command))
         {
-            case "cpin":
-                if (args.Length != 3)
-                {
-                    Console.WriteLine("Usage: cpin <external-path> <internal-name>");
-                    return;
-                }
-                
-                fs.Cpin(args[1], args[2]);
-                
-                break;
-            
-            case "cpout":
-                if (args.Length != 3)
-                {
-                    Console.WriteLine("Usage: cpout <internal-name> <external-path>");
-                    return;
-                }
-                
-                fs.Cpout(args[1], args[2]);
-                
-                break;
-            
-            case "ls":
-                var list = fs.Ls();
-                foreach (var entry in list)
-                {
-                    Console.WriteLine($"{entry.Name} ({entry.Size} bytes)");
-                }
-                
-                break;
-            
-            case "rm":
-                if (args.Length != 2)
-                {
-                    Console.WriteLine("Usage: rm <internal-name>");
-                    return;
-                }
-                
-                fs.Rm(args[1]);
-                
-                break;
-            
-            default:
-                Console.WriteLine("Unknown command.");
-                PrintUsage();
-                
-                break;
+            Console.WriteLine($"Unknown command: {cmd}");
+            PrintUsage();
+            return;
         }
+        
+        const string containerPath = "container.vfs";
+        const int blockSize = 4096;
+        
+        var fs = new FileSystemService(containerPath,  blockSize);
+        
+        command.Execute(fs, args);
     }
     
     private static void PrintUsage()
     {
-        Console.WriteLine("Commands:");
-        Console.WriteLine(" cpin <external> <internal>");
-        Console.WriteLine(" cpout <internal> <external>");
-        Console.WriteLine(" ls");
-        Console.WriteLine(" rm <internal>");
+        Console.WriteLine("Available commands:\n");
+        
+        foreach (var c in Commands.Values)
+        {
+            Console.WriteLine($" {c.Usage,-30} {c.Description}");
+        }
     }
 }

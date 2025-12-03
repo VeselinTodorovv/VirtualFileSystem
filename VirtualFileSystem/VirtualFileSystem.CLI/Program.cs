@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using VirtualFileSystem.API;
+﻿using VirtualFileSystem.API;
 using VirtualFileSystem.CLI.Commands;
 
 namespace VirtualFileSystem.CLI;

@@ -3,9 +3,9 @@
 public class FileSystemLayout(int blockSize, int entrySize, int entryCount, int blockCount)
 {
     public int BlockSize { get; } = blockSize;
-    private int EntrySize { get; } = entrySize;
-    private int EntryCount { get; } = entryCount;
-    public int BlockCount { get; } = blockCount;
+    internal int EntrySize { get; } = entrySize;
+    internal int EntryCount { get; } = entryCount;
+    internal int BlockCount { get; } = blockCount;
     
     public int MetadataStartBlock => 1;
     

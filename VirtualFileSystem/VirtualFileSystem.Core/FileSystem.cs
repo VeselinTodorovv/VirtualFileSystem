@@ -13,17 +13,13 @@ public class FileSystem
     private MetadataTable _metadata = null!;
     private FreeBlockMap _freeBlocks = null!;
     
-    private const int EntrySize = 256;
-    private const int EntryCount = 256;
-    private const int BlockCount = 4096;
-    
     public FileSystem(string containerPath, int blockSize)
     {
         _layout = new FileSystemLayout(
             blockSize,
-            EntrySize,
-            EntryCount,
-            BlockCount
+            FileMetadata.EntrySize,
+            256,
+            4096
         );
         
         _container = new ContainerStream(containerPath, blockSize);
@@ -44,8 +40,17 @@ public class FileSystem
     {
         _superblock = superblock;
         
-        _metadata = new MetadataTable(_container, _layout.MetadataStartBlock);
-        _freeBlocks = new FreeBlockMap(_container, _layout.BlockCount, _layout.FreeBlockMapStartBlock);
+        _metadata = new MetadataTable(
+            _container,
+            _layout.MetadataStartBlock,
+            _layout.EntryCount
+        );
+        
+        _freeBlocks = new FreeBlockMap(
+            _container,
+            _layout.BlockCount,
+            _layout.FreeBlockMapStartBlock
+        );
         
         _freeBlocks.Load();
     }
@@ -60,7 +65,7 @@ public class FileSystem
         
         _superblock.WriteTo(_container);
         
-        _metadata = new MetadataTable(_container, _layout.MetadataStartBlock);
+        _metadata = new MetadataTable(_container, _layout.MetadataStartBlock, _layout.EntryCount);
         _freeBlocks = new FreeBlockMap(_container, _layout.BlockCount, _layout.FreeBlockMapStartBlock);
         
         byte[] emptyBlock = new byte[_layout.BlockSize];
@@ -72,24 +77,20 @@ public class FileSystem
         }
         
         byte[] zeroBitmap = new byte[_layout.BlockCount];
-        long offsetOfBlock = _container.OffsetOfBlock(_layout.MetadataStartBlock);
+        long offsetOfBlock = _container.OffsetOfBlock(_layout.FreeBlockMapStartBlock);
         
-        _container.WriteBytes(
-            offsetOfBlock, zeroBitmap, zeroBitmap.Length
-        );
+        _container.WriteBytes(offsetOfBlock, zeroBitmap, zeroBitmap.Length);
         
         _container.WriteBytes(_layout.ContainerSizeBytes - 1, [0], 1);
         
         _freeBlocks.Load();
         _freeBlocks.Allocate(); // Superblock
         
-        // Metadata
         for (int i = 0; i < _layout.MetadataBlocks; i++)
         {
             _freeBlocks.Allocate();
         }
         
-        // Bitmap
         for (int i = 0; i < _layout.BitmapBlocks; i++)
         {
             _freeBlocks.Allocate();
@@ -110,7 +111,7 @@ public class FileSystem
         int freeIndex = _metadata.FindFreeIndex();
         if (freeIndex == -1)
         {
-            throw new ArgumentException("No free metadata entries");
+            throw new InvalidOperationException("No free metadata entries");
         }
         
         var meta = new FileMetadata
@@ -129,20 +130,16 @@ public class FileSystem
         {
             if (bytesRead < buffer.Length)
             {
-                for (int i = bytesRead; i < buffer.Length; i++)
-                {
-                    buffer[i] = 0;
-                }
+                Array.Clear(buffer, bytesRead, buffer.Length - bytesRead);
             }
             
             int blockIndex = _freeBlocks.Allocate();
             if (blockIndex == -1)
             {
-                throw new Exception("No free blocks available.");
+                throw new IOException("Filesystem out of space");
             }
             
             _container.WriteBlock(blockIndex, buffer);
-            
             meta.Blocks[blocksWritten++] = blockIndex;
         }
         
@@ -160,7 +157,7 @@ public class FileSystem
         
         var meta = _metadata.LoadEntry(index);
         
-        using FileStream fileStream = new(destinationPath, FileMode.Create, FileAccess.Write);
+        using FileStream output = new(destinationPath, FileMode.Create, FileAccess.Write);
         
         byte[] buffer = new byte[_superblock.BlockSize];
         int remaining = meta.Size;
@@ -170,7 +167,7 @@ public class FileSystem
             _container.ReadBlock(meta.Blocks[i], buffer);
             
             int toWrite = Math.Min(remaining, buffer.Length);
-            fileStream.Write(buffer, 0, toWrite);
+            output.Write(buffer, 0, toWrite);
             remaining -= toWrite;
             
             if (remaining <= 0)

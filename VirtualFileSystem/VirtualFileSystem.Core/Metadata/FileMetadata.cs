@@ -4,46 +4,54 @@ namespace VirtualFileSystem.Core.Metadata;
 
 public class FileMetadata
 {
+    private const int NameMaxLength = 32;
+    private const int MaxBlocks = 48;
+    
+    private const int UsedOffset = 0;
+    private const int NameOffset = 1;
+    private const int SizeOffset = NameOffset + NameMaxLength;
+    private const int BlockCountOffset = SizeOffset + 4;
+    private const int BlockListOffset = BlockCountOffset + 4;
+
+    internal const int EntrySize = BlockListOffset + MaxBlocks * 4;
+    
     public bool IsUsed;
     public string Name = "";
     public int Size;
     public int BlockCount;
-    public readonly int[] Blocks = new int[48];
+    public readonly int[] Blocks = new int[MaxBlocks];
     
     public byte[] ToBytes()
     {
-        byte[] buffer = new byte[256];
+        byte[] buf = new byte[EntrySize];
         
-        buffer[0] = (byte)(IsUsed ? 1 : 0);
+        buf[UsedOffset] = (byte)(IsUsed ? 1 : 0);
+        ByteUtil.WriteFixedString(Name, buf, NameOffset, NameMaxLength);
         
-        ByteUtil.WriteFixedString(Name, buffer, 1, 32);
+        BitConverter.GetBytes(Size).CopyTo(buf, SizeOffset);
+        BitConverter.GetBytes(BlockCount).CopyTo(buf, BlockCountOffset);
         
-        BitConverter.GetBytes(Size).CopyTo(buffer, 33);
-        BitConverter.GetBytes(BlockCount).CopyTo(buffer, 37);
-        
-        const int pos = 41;
-        for (int i = 0; i < Blocks.Length; i++)
+        for (int i = 0; i < MaxBlocks; i++)
         {
-            BitConverter.GetBytes(Blocks[i]).CopyTo(buffer, pos + i * 4);
+            BitConverter.GetBytes(Blocks[i]).CopyTo(buf, BlockListOffset + i * 4);
         }
         
-        return buffer;
+        return buf;
     }
     
     public static FileMetadata FromBytes(byte[] buf)
     {
         var m = new FileMetadata
         {
-            IsUsed = buf[0] == 1,
-            Name = ByteUtil.ReadFixedString(buf, 1, 32),
-            Size = BitConverter.ToInt32(buf, 33),
-            BlockCount = BitConverter.ToInt32(buf, 37)
+            IsUsed = buf[UsedOffset] == 1,
+            Name = ByteUtil.ReadFixedString(buf, NameOffset, NameMaxLength),
+            Size = BitConverter.ToInt32(buf, SizeOffset),
+            BlockCount = BitConverter.ToInt32(buf, BlockCountOffset)
         };
         
-        const int pos = 41;
-        for (int i = 0; i < m.Blocks.Length; i++)
+        for (int i = 0; i < MaxBlocks; i++)
         {
-            m.Blocks[i] = BitConverter.ToInt32(buf, pos + i * 4);
+            m.Blocks[i] = BitConverter.ToInt32(buf, BlockListOffset + i * 4);
         }
         
         return m;

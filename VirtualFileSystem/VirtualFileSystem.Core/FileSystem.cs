@@ -1,6 +1,7 @@
 ﻿using VirtualFileSystem.Core.Container;
 using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Metadata;
+using VirtualFileSystem.Core.Util;
 
 namespace VirtualFileSystem.Core;
 
@@ -12,6 +13,13 @@ public class FileSystem
     private Superblock _superblock = null!;
     private MetadataTable _metadata = null!;
     private FreeBlockMap _freeBlocks = null!;
+    
+    private FileWriter _fileWriter = null!;
+    private FileReader _fileReader = null!;
+    
+    private FileOperations _ops = null!;
+    private FileValidator _fileValidator = null!;
+    
     
     public FileSystem(string containerPath, int blockSize)
     {
@@ -39,6 +47,12 @@ public class FileSystem
         
         _metadata = new MetadataTable(_container, metaLayout);
         _freeBlocks = new FreeBlockMap(_container, fbmLayout);
+        
+        _fileWriter = new FileWriter(_container, _freeBlocks, _layout.BlockSize);
+        _fileReader = new FileReader(_container, _layout.BlockSize);
+        
+        _fileValidator = new FileValidator(_metadata);
+        _ops = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator);
     }
     
     private void FormatNew()
@@ -75,110 +89,11 @@ public class FileSystem
         _freeBlocks.Save();
     }
     
-    public void Cpin(string externalPath, string internalName)
-    {
-        if (_metadata.FindByName(internalName) != -1)
-        {
-            throw new InvalidOperationException($"A file with the name {internalName} already exists.");
-        }
-        
-        if (!File.Exists(externalPath))
-        {
-            throw new FileNotFoundException(externalPath);
-        }
-        
-        int freeIndex = _metadata.FindFreeIndex();
-        if (freeIndex == -1)
-        {
-            throw new InvalidOperationException("No free metadata entries");
-        }
-        
-        using FileStream fileStream = new(externalPath, FileMode.Open, FileAccess.Read);
-        
-        var meta = new FileMetadata
-        {
-            IsUsed = true,
-            Name = internalName,
-            Size = (int)fileStream.Length
-        };
-        
-        byte[] buffer = new byte[_superblock.BlockSize];
-        
-        int blocksWritten = 0;
-        int bytesRead;
-        
-        while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
-        {
-            if (bytesRead < buffer.Length)
-            {
-                Array.Clear(buffer, bytesRead, buffer.Length - bytesRead);
-            }
-            
-            int blockIndex = _freeBlocks.Allocate();
-            if (blockIndex == -1)
-            {
-                throw new IOException("Filesystem out of space");
-            }
-            
-            _container.WriteBlock(blockIndex, buffer);
-            meta.Blocks[blocksWritten++] = blockIndex;
-        }
-        
-        meta.BlockCount = blocksWritten;
-        _metadata.SaveEntry(freeIndex, meta);
-    }
+    public void Cpin(string externalPath, string internalName) => _ops.Import(externalPath, internalName);
     
-    public void Cpout(string internalName, string destinationPath)
-    {
-        int index = _metadata.FindByName(internalName);
-        if (index == -1)
-        {
-            throw new FileNotFoundException(internalName);
-        }
-        
-        var meta = _metadata.LoadEntry(index);
-        
-        using FileStream output = new(destinationPath, FileMode.Create, FileAccess.Write);
-        
-        byte[] buffer = new byte[_superblock.BlockSize];
-        int remaining = meta.Size;
-        
-        for (int i = 0; i < meta.BlockCount; i++)
-        {
-            _container.ReadBlock(meta.Blocks[i], buffer);
-            
-            int toWrite = Math.Min(remaining, buffer.Length);
-            output.Write(buffer, 0, toWrite);
-            remaining -= toWrite;
-            
-            if (remaining <= 0)
-            {
-                break;
-            }
-        }
-    }
+    public void Cpout(string internalName, string destinationPath) => _ops.Export(internalName, destinationPath);
     
-    public FileMetadata[] Ls()
-    {
-        return _metadata.ListFiles();
-    }
+    public FileMetadata[] Ls() => _ops.List();
     
-    public void Rm(string internalName)
-    {
-        int index = _metadata.FindByName(internalName);
-        if (index == -1)
-        {
-            throw new FileNotFoundException(internalName);
-        }
-        
-        var meta = _metadata.LoadEntry(index);
-        
-        for (int i = 0; i < meta.BlockCount; i++)
-        {
-            _freeBlocks.Free(meta.Blocks[i]);
-        }
-        
-        meta.IsUsed = false;
-        _metadata.SaveEntry(index, meta);
-    }
+    public void Rm(string internalName) => _ops.Remove(internalName);
 }

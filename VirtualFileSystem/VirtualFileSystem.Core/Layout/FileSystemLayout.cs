@@ -1,23 +1,36 @@
 ﻿namespace VirtualFileSystem.Core.Layout;
 
-public class FileSystemLayout(int blockSize, int entrySize, int entryCount, int blockCount)
+public class FileSystemLayout(int blockSize, int totalBlocks = 4096, int metadataEntryCount = 256)
 {
     public int BlockSize { get; } = blockSize;
-    internal int EntrySize { get; } = entrySize;
-    internal int EntryCount { get; } = entryCount;
-    internal int BlockCount { get; } = blockCount;
+    
+    public int TotalBlocks { get; } = totalBlocks;
+    
+    public int MetadataEntryCount { get; } = metadataEntryCount;
     
     public int MetadataStartBlock => 1;
     
-    private int MetadataSize => EntrySize * EntryCount;
+    private int MetadataSizeBytes => FileMetadataLayout.EntrySize * MetadataEntryCount;
     
-    public int MetadataBlocks => (MetadataSize + BlockSize - 1) / BlockSize;
+    public int MetadataBlocks => (MetadataSizeBytes + BlockSize - 1) / BlockSize;
     
     public int FreeBlockMapStartBlock => MetadataStartBlock + MetadataBlocks;
     
-    private int BitmapBytes => BlockCount;
+    private int BitmapBytes => TotalBlocks;
     
     public int BitmapBlocks => (BitmapBytes + BlockSize - 1) / BlockSize;
     
-    public long ContainerSizeBytes => (long)BlockCount * BlockSize;
+    public long ContainerSizeBytes => (long)BlockSize * TotalBlocks;
+    
+    public MetadataLayout MetadataLayout => new(
+        MetadataStartBlock,
+        FileMetadataLayout.EntrySize,
+        MetadataEntryCount
+    );
+    
+    public FreeBlockMapLayout FreeBlockMapLayout => new(
+        FreeBlockMapStartBlock,
+        TotalBlocks,
+        BlockSize
+    );
 }

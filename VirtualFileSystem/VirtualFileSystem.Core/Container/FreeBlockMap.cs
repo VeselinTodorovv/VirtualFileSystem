@@ -1,8 +1,31 @@
-﻿namespace VirtualFileSystem.Core.Container;
+﻿using VirtualFileSystem.Core.Layout;
 
-public class FreeBlockMap(ContainerStream stream, int blockCount, int startBlock)
+namespace VirtualFileSystem.Core.Container;
+
+public class FreeBlockMap
 {
-    private readonly byte[] _map = new byte[blockCount]; // 0- free; 1- used
+    private readonly ContainerStream _stream;
+    private readonly FreeBlockMapLayout _layout;
+    private readonly byte[] _map;
+    
+    public FreeBlockMap(ContainerStream stream, FreeBlockMapLayout layout)
+    {
+        _stream = stream;
+        _layout = layout;
+        _map = new byte[_layout.BlockCount];
+    }
+    
+    public void Load()
+    {
+        var offsetOfBlock = _stream.OffsetOfBlock(_layout.StartBlock);
+        _stream.ReadBytes(offsetOfBlock, _map, _map.Length);
+    }
+    
+    public void Save()
+    {
+        var offsetOfBlock = _stream.OffsetOfBlock(_layout.StartBlock);
+        _stream.WriteBytes(offsetOfBlock, _map, _map.Length);
+    } 
     
     public int Allocate()
     {
@@ -22,25 +45,9 @@ public class FreeBlockMap(ContainerStream stream, int blockCount, int startBlock
         return -1;
     }
     
-    public void Free(int blockIndex)
+    public void Free(int index)
     {
-        _map[blockIndex] = 0;
+        _map[index] = 0;
         Save();
-    }
-    
-    public void Load()
-    {
-        byte[] buffer = new byte[_map.Length];
-        stream.ReadBytes(stream.OffsetOfBlock(startBlock), buffer, _map.Length);
-
-        for (int i = 0; i < _map.Length; i++)
-        {
-            _map[i] = buffer[i];
-        }
-    }
-    
-    public void Save()
-    {
-        stream.WriteBytes(stream.OffsetOfBlock(startBlock), _map, _map.Length);
     }
 }

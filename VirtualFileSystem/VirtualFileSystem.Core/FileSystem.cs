@@ -15,76 +15,52 @@ public class FileSystem
     
     public FileSystem(string containerPath, int blockSize)
     {
-        _layout = new FileSystemLayout(
-            blockSize,
-            FileMetadataLayout.EntrySize,
-            256,
-            4096
-        );
-        
+        _layout = new FileSystemLayout(blockSize);
         _container = new ContainerStream(containerPath, blockSize);
         
-        var loaded = Superblock.LoadFrom(_container);
-        
-        if (loaded == null)
+        var sb = Superblock.LoadFrom(_container);
+        if (sb == null)
         {
-            FormatNewContainer();
+            FormatNew();
         }
         else
         {
-            MountExistingContainer(loaded);
+            Mount(sb);
+            _freeBlocks.Load();
         }
     }
     
-    private void MountExistingContainer(Superblock superblock)
+    private void Mount(Superblock sb)
     {
-        _superblock = superblock;
+        _superblock = sb;
         
-        _metadata = new MetadataTable(
-            _container,
-            _layout.MetadataStartBlock,
-            _layout.EntryCount
-        );
+        var metaLayout = _layout.MetadataLayout;
+        var fbmLayout = _layout.FreeBlockMapLayout;
         
-        _freeBlocks = new FreeBlockMap(
-            _container,
-            _layout.BlockCount,
-            _layout.FreeBlockMapStartBlock
-        );
-        
-        _freeBlocks.Load();
+        _metadata = new MetadataTable(_container, metaLayout);
+        _freeBlocks = new FreeBlockMap(_container, fbmLayout);
     }
     
-    private void FormatNewContainer()
+    private void FormatNew()
     {
-        _superblock = new Superblock(
-            _layout.BlockSize,
-            _layout.BlockCount,
-            _layout.MetadataStartBlock
-        );
-        
+        _superblock = new Superblock(_layout.BlockSize, _layout.TotalBlocks, _layout.MetadataStartBlock);
         _superblock.WriteTo(_container);
         
-        _metadata = new MetadataTable(_container, _layout.MetadataStartBlock, _layout.EntryCount);
-        _freeBlocks = new FreeBlockMap(_container, _layout.BlockCount, _layout.FreeBlockMapStartBlock);
+        Mount(_superblock);
         
-        byte[] emptyBlock = new byte[_layout.BlockSize];
+        _container.WriteBytes(_layout.ContainerSizeBytes - 1, new byte[1], 1);
         
         for (int i = 0; i < _layout.MetadataBlocks; i++)
         {
-            int layoutMetadataStartBlock = _layout.MetadataStartBlock + i;
-            _container.WriteBlock(layoutMetadataStartBlock, emptyBlock);
+            _container.WriteBlock(_layout.MetadataStartBlock + i, new byte[_layout.BlockSize]);
         }
         
-        byte[] zeroBitmap = new byte[_layout.BlockCount];
-        long offsetOfBlock = _container.OffsetOfBlock(_layout.FreeBlockMapStartBlock);
-        
-        _container.WriteBytes(offsetOfBlock, zeroBitmap, zeroBitmap.Length);
-        
-        _container.WriteBytes(_layout.ContainerSizeBytes - 1, [0], 1);
+        var offsetOfBlock = _container.OffsetOfBlock(_layout.FreeBlockMapStartBlock);
+        _container.WriteBytes(offsetOfBlock, new byte[_layout.TotalBlocks], _layout.TotalBlocks);
         
         _freeBlocks.Load();
-        _freeBlocks.Allocate(); // Superblock
+        
+        _freeBlocks.Allocate(); // superblock
         
         for (int i = 0; i < _layout.MetadataBlocks; i++)
         {

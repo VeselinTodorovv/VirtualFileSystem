@@ -1,8 +1,9 @@
 ﻿using VirtualFileSystem.Core.Container;
+using VirtualFileSystem.Core.IO;
 using VirtualFileSystem.Core.Metadata;
 using VirtualFileSystem.Core.Util;
 
-namespace VirtualFileSystem.Core;
+namespace VirtualFileSystem.Core.Services;
 
 public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, FileWriter fileWriter, FileReader fileReader, FileValidator fileValidator)
 {

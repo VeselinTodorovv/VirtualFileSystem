@@ -1,6 +1,6 @@
 ﻿using VirtualFileSystem.Core.Container;
 
-namespace VirtualFileSystem.Core.Util;
+namespace VirtualFileSystem.Core.IO;
 
 public class FileWriter(ContainerStream container, FreeBlockMap freeBlocks, int b)
 {

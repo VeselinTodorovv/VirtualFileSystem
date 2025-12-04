@@ -1,6 +1,6 @@
 ﻿using VirtualFileSystem.Core.Metadata;
 
-namespace VirtualFileSystem.Core.Util;
+namespace VirtualFileSystem.Core.Services;
 
 public class FileValidator(MetadataTable metadata)
 {

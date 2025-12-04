@@ -1,6 +1,8 @@
 ﻿using VirtualFileSystem.Core.Container;
+using VirtualFileSystem.Core.IO;
 using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Metadata;
+using VirtualFileSystem.Core.Services;
 using VirtualFileSystem.Core.Util;
 
 namespace VirtualFileSystem.Core;

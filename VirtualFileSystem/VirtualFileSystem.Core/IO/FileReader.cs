@@ -1,6 +1,6 @@
 ﻿using VirtualFileSystem.Core.Container;
 
-namespace VirtualFileSystem.Core.Util;
+namespace VirtualFileSystem.Core.IO;
 
 public class FileReader(ContainerStream container, int blockSize)
 {

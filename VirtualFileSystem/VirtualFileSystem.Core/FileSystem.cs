@@ -77,6 +77,11 @@ public class FileSystem
     
     public void Cpin(string externalPath, string internalName)
     {
+        if (_metadata.FindByName(internalName) != -1)
+        {
+            throw new InvalidOperationException($"A file with the name {internalName} already exists.");
+        }
+        
         if (!File.Exists(externalPath))
         {
             throw new FileNotFoundException(externalPath);

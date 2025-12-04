@@ -5,14 +5,15 @@ namespace VirtualFileSystem.CLI;
 
 internal static class Program
 {
-    // TODO: Implement Own Dictionary
-    private static readonly Dictionary<string, ICommand> Commands = new()
+    private static readonly SimpleDictionary<string, ICommand> Commands = new(4);
+    
+    static Program()
     {
-        ["cpin"] = new CpinCommand(),
-        ["cpout"] = new CpoutCommand(),
-        ["ls"] = new LsCommand(),
-        ["rm"] = new RmCommand(),
-    };
+        Commands.Add("cpin", new CpinCommand());
+        Commands.Add("cpout", new CpoutCommand());
+        Commands.Add("ls", new LsCommand());
+        Commands.Add("rm", new RmCommand());
+    }
     
     public static void Main(string[] args)
     {
@@ -28,6 +29,7 @@ internal static class Program
         {
             Console.WriteLine($"Unknown command: {cmd}");
             PrintUsage();
+            
             return;
         }
         
@@ -36,14 +38,14 @@ internal static class Program
         
         var fs = new FileSystemService(containerPath,  blockSize);
         
-        command.Execute(fs, args);
+        command?.Execute(fs, args);
     }
     
     private static void PrintUsage()
     {
         Console.WriteLine("Available commands:\n");
         
-        foreach (var c in Commands.Values)
+        foreach (var c in Commands.Values())
         {
             Console.WriteLine($" {c.Usage,-30} {c.Description}");
         }

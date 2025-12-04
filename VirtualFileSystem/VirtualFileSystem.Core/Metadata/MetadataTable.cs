@@ -25,7 +25,8 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
     {
         for (int i = 0; i < layout.EntryCount; i++)
         {
-            if (!LoadEntry(i).IsUsed)
+            var entry = LoadEntry(i);
+            if (!entry.IsUsed)
             {
                 return i;
             }
@@ -38,8 +39,8 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
     {
         for (int i = 0; i < layout.EntryCount; i++)
         {
-            var e = LoadEntry(i);
-            if (e.IsUsed && StringUtil.Equals(e.Name, name))
+            var entry = LoadEntry(i);
+            if (entry.IsUsed && StringUtil.Equals(entry.Name, name))
             {
                 return i;
             }
@@ -55,10 +56,10 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         
         for (int i = 0; i < layout.EntryCount; i++)
         {
-            var e = LoadEntry(i);
-            if (e.IsUsed)
+            var entry = LoadEntry(i);
+            if (entry.IsUsed)
             {
-                arr[count++] = e;
+                arr[count++] = entry;
             }
         }
         

@@ -1,9 +1,9 @@
-﻿namespace VirtualFileSystem.API;
+﻿using VirtualFileSystem.API.Contracts;
 
-public interface IFileSystem
-{
-    void Cpin(string externalPath, string internalName);
-    void Cpout(string internalName, string destinationPath);
-    void Rm(string internalName);
-    FileEntryInfo[] Ls();
-}
+namespace VirtualFileSystem.API;
+
+public interface IFileSystem :
+    IImporter,
+    IExporter,
+    IDeleter,
+    IListing;

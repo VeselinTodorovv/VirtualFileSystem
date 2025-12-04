@@ -5,10 +5,12 @@ namespace VirtualFileSystem.CLI;
 
 internal static class Program
 {
-    private static readonly SimpleDictionary<string, ICommand> Commands = new(4);
+    private static readonly SimpleDictionary<string, ICommand> Commands;
     
     static Program()
     {
+        Commands = new SimpleDictionary<string, ICommand>(4);
+        
         Commands.Add("cpin", new CpinCommand());
         Commands.Add("cpout", new CpoutCommand());
         Commands.Add("ls", new LsCommand());
@@ -23,11 +25,9 @@ internal static class Program
             return;
         }
         
-        var cmd = args[0];
-        
-        if (!Commands.TryGetValue(cmd, out var command))
+        if (!Commands.TryGetValue(args[0], out var command))
         {
-            Console.WriteLine($"Unknown command: {cmd}");
+            Console.WriteLine($"Unknown command: {args[0]}");
             PrintUsage();
             
             return;
@@ -37,7 +37,6 @@ internal static class Program
         const int blockSize = 4096;
         
         var fs = new FileSystemService(containerPath,  blockSize);
-        
         command?.Execute(fs, args);
     }
     

@@ -3,9 +3,7 @@
 public class FileSystemLayout(int blockSize, int totalBlocks = 4096, int metadataEntryCount = 256)
 {
     public int BlockSize { get; } = blockSize;
-    
     public int TotalBlocks { get; } = totalBlocks;
-    
     public int MetadataEntryCount { get; } = metadataEntryCount;
     
     public int MetadataStartBlock => 1;
@@ -22,15 +20,6 @@ public class FileSystemLayout(int blockSize, int totalBlocks = 4096, int metadat
     
     public long ContainerSizeBytes => (long)BlockSize * TotalBlocks;
     
-    public MetadataLayout MetadataLayout => new(
-        MetadataStartBlock,
-        FileMetadataLayout.EntrySize,
-        MetadataEntryCount
-    );
-    
-    public FreeBlockMapLayout FreeBlockMapLayout => new(
-        FreeBlockMapStartBlock,
-        TotalBlocks,
-        BlockSize
-    );
+    public MetadataLayout MetadataLayout => new(MetadataStartBlock, FileMetadataLayout.EntrySize, MetadataEntryCount);
+    public FreeBlockMapLayout FreeBlockMapLayout => new(FreeBlockMapStartBlock, TotalBlocks, BlockSize);
 }

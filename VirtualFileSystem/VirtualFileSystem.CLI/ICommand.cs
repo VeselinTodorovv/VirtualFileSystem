@@ -8,5 +8,5 @@ public interface ICommand
     string Description { get; }
     string Usage { get; }
     
-    void Execute(FileSystemService fs, string[] args);
+    void Execute(IFileSystem fs, string[] args);
 }

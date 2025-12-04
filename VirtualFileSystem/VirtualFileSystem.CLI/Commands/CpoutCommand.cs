@@ -8,7 +8,7 @@ public class CpoutCommand : ICommand
     public string Description => "Extract a file from the virtual FS.";
     public string Usage => "cpout <internal-name> <external-path>";
     
-    public void Execute(FileSystemService fs, string[] args)
+    public void Execute(IFileSystem fs, string[] args)
     {
         if (args.Length != 3)
         {

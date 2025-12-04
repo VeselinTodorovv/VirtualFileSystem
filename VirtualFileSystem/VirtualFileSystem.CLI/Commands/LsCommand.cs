@@ -8,7 +8,7 @@ public class LsCommand : ICommand
     public string Description => "List files in the container.";
     public string Usage => "ls";
     
-    public void Execute(FileSystemService fs, string[] args)
+    public void Execute(IFileSystem fs, string[] args)
     {
         var list = fs.Ls();
         

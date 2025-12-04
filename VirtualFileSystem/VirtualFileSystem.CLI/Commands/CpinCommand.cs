@@ -8,7 +8,7 @@ public class CpinCommand : ICommand
     public string Description => "Copy an external file into the virtual FS.";
     public string Usage => "cpin <external-path> <internal-name>";
     
-    public void Execute(FileSystemService fs, string[] args)
+    public void Execute(IFileSystem fs, string[] args)
     {
         if (args.Length != 3)
         {

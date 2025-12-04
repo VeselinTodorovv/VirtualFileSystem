@@ -8,7 +8,7 @@ public class RmCommand : ICommand
     public string Description => "Remove a file from the virtual FS.";
     public string Usage => "rm <internal-name>";
     
-    public void Execute(FileSystemService fs, string[] args)
+    public void Execute(IFileSystem fs, string[] args)
     {
         if (args.Length != 2)
         {

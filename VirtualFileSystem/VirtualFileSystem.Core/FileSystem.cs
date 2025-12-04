@@ -17,7 +17,7 @@ public class FileSystem
     {
         _layout = new FileSystemLayout(
             blockSize,
-            FileMetadata.EntrySize,
+            FileMetadataLayout.EntrySize,
             256,
             4096
         );
@@ -106,13 +106,13 @@ public class FileSystem
             throw new FileNotFoundException(externalPath);
         }
         
-        using FileStream fileStream = new(externalPath, FileMode.Open, FileAccess.Read);
-        
         int freeIndex = _metadata.FindFreeIndex();
         if (freeIndex == -1)
         {
             throw new InvalidOperationException("No free metadata entries");
         }
+        
+        using FileStream fileStream = new(externalPath, FileMode.Open, FileAccess.Read);
         
         var meta = new FileMetadata
         {

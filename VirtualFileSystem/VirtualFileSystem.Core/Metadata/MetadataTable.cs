@@ -1,11 +1,12 @@
 ﻿using VirtualFileSystem.Core.Container;
+using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Util;
 
 namespace VirtualFileSystem.Core.Metadata;
 
 public class MetadataTable(ContainerStream stream, int startBlock, int entryCount)
 {
-    private int EntrySize => FileMetadata.EntrySize;
+    private int EntrySize => FileMetadataLayout.EntrySize;
     private int EntryCount { get; } = entryCount;
     
     private long OffsetOf(int index) => stream.OffsetOfBlock(startBlock) + index * EntrySize;

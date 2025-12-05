@@ -1,4 +1,5 @@
-﻿using VirtualFileSystem.Core.Layout;
+﻿using VirtualFileSystem.Core.Diagnostics;
+using VirtualFileSystem.Core.Layout;
 
 namespace VirtualFileSystem.Core.Container;
 
@@ -39,6 +40,8 @@ public class FreeBlockMap
             _map[i] = 1;
             Save();
             
+            FsLogger.Log($"Allocating block {i}");
+            
             return i;
         }
         
@@ -47,6 +50,8 @@ public class FreeBlockMap
     
     public void Free(int index)
     {
+        FsLogger.Log($"Freeing block {index}");
+        
         _map[index] = 0;
         Save();
     }

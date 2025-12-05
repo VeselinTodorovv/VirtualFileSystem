@@ -1,7 +1,7 @@
 ﻿using VirtualFileSystem.Core.Container;
+using VirtualFileSystem.Core.Diagnostics;
 using VirtualFileSystem.Core.IO;
 using VirtualFileSystem.Core.Metadata;
-using VirtualFileSystem.Core.Util;
 
 namespace VirtualFileSystem.Core.Services;
 
@@ -11,6 +11,7 @@ public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, Fil
     {
         fileValidator.EnsureNameAvailable(internalName);
         fileValidator.EnsureExternalFileExists(externalPath);
+        fileValidator.ValidateNameLength(internalName);
         
         int index = metadata.FindFreeIndex();
         if (index == -1)
@@ -29,10 +30,15 @@ public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, Fil
         
         meta.BlockCount = fileWriter.WriteFile(fileStream, meta.Blocks);
         metadata.SaveEntry(index, meta);
+        
+        FsLogger.Log($"Importing '{internalName}' ({externalPath})");
+        FsLogger.Log($"Allocated blocks: {string.Join(", ", meta.Blocks.Take(meta.BlockCount))}");
     }
     
     public void Export(string internalName, string destinationPath)
     {
+        fileValidator.ValidateNameLength(internalName);
+        
         var index = fileValidator.FindFile(internalName);
         var meta = metadata.LoadEntry(index);
         
@@ -48,8 +54,9 @@ public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, Fil
     
     public void Remove(string internalName)
     {
-        int index = fileValidator.FindFile(internalName);
+        fileValidator.ValidateNameLength(internalName);
         
+        int index = fileValidator.FindFile(internalName);
         var meta = metadata.LoadEntry(index);
         
         for (int i = 0; i < meta.BlockCount; i++)

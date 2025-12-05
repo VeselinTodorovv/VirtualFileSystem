@@ -6,4 +6,5 @@ public interface IFileSystem :
     IImporter,
     IExporter,
     IDeleter,
-    IListing;
+    IListing,
+    IFileSystemDebug;

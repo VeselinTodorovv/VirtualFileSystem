@@ -1,4 +1,5 @@
 ﻿using VirtualFileSystem.API;
+using VirtualFileSystem.API.Contracts;
 using VirtualFileSystem.CLI.Commands;
 
 namespace VirtualFileSystem.CLI;
@@ -25,6 +26,19 @@ internal static class Program
             return;
         }
         
+        const string containerPath = "container.vfs";
+        const int blockSize = 4096;
+        
+        bool debug = false;
+        
+        if (args[0] == "--debug")
+        {
+            debug = true;
+            
+            // TODO: Prolly not allowed
+            args = args.Skip(1).ToArray();
+        }
+        
         if (!Commands.TryGetValue(args[0], out var command))
         {
             Console.WriteLine($"Unknown command: {args[0]}");
@@ -33,10 +47,13 @@ internal static class Program
             return;
         }
         
-        const string containerPath = "container.vfs";
-        const int blockSize = 4096;
+        IFileSystem fs = new FileSystemService(containerPath, blockSize);
         
-        var fs = new FileSystemService(containerPath,  blockSize);
+        if (debug)
+        {
+            fs.SetDebug(true);
+        }
+        
         command?.Execute(fs, args);
     }
     

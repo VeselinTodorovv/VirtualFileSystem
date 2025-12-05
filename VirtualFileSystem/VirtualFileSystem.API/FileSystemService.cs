@@ -1,4 +1,5 @@
 ﻿using VirtualFileSystem.Core;
+using VirtualFileSystem.Core.Diagnostics;
 
 namespace VirtualFileSystem.API;
 
@@ -32,5 +33,17 @@ public class FileSystemService(string containerPath, int blockSize) : IFileSyste
         }
         
         return result;
+    }
+    
+    public void SetDebug(bool enabled)
+    {
+        if (enabled)
+        {
+            FsLogger.Enable();
+        }
+        else
+        {
+            FsLogger.Disable();
+        }
     }
 }

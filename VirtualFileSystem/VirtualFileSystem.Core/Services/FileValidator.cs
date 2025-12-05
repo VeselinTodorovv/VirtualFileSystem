@@ -1,4 +1,5 @@
-﻿using VirtualFileSystem.Core.Metadata;
+﻿using VirtualFileSystem.Core.Layout;
+using VirtualFileSystem.Core.Metadata;
 
 namespace VirtualFileSystem.Core.Services;
 
@@ -26,6 +27,14 @@ public class FileValidator(MetadataTable metadata)
         if (metadata.FindByName(internalName) != -1)
         {
             throw new InvalidOperationException($"A file with the name {internalName} already exists.");
+        }
+    }
+    
+    internal void ValidateNameLength(string name)
+    {
+        if (name.Length > FileMetadataLayout.NameMaxLength)
+        {
+            throw new InvalidOperationException($"Filename too long (max {FileMetadataLayout.NameMaxLength}).");
         }
     }
 }

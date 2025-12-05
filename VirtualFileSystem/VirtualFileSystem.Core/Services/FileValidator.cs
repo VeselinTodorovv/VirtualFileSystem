@@ -13,7 +13,7 @@ public class FileValidator(MetadataTable metadata)
             : index;
     }
     
-    internal static void EnsureExternalFileExists(string externalPath)
+    internal void EnsureExternalFileExists(string externalPath)
     {
         if (!File.Exists(externalPath))
         {

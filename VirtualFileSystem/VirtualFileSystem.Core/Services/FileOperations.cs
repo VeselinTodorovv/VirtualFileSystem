@@ -10,7 +10,7 @@ public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, Fil
     public void Import(string externalPath, string internalName)
     {
         fileValidator.EnsureNameAvailable(internalName);
-        FileValidator.EnsureExternalFileExists(externalPath);
+        fileValidator.EnsureExternalFileExists(externalPath);
         
         int index = metadata.FindFreeIndex();
         if (index == -1)

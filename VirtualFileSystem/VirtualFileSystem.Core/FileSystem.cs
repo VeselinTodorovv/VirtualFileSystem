@@ -3,7 +3,6 @@ using VirtualFileSystem.Core.IO;
 using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Metadata;
 using VirtualFileSystem.Core.Services;
-using VirtualFileSystem.Core.Util;
 
 namespace VirtualFileSystem.Core;
 
@@ -21,7 +20,6 @@ public class FileSystem
     
     private FileOperations _ops = null!;
     private FileValidator _fileValidator = null!;
-    
     
     public FileSystem(string containerPath, int blockSize)
     {
@@ -59,36 +57,60 @@ public class FileSystem
     
     private void FormatNew()
     {
-        _superblock = new Superblock(_layout.BlockSize, _layout.TotalBlocks, _layout.MetadataStartBlock);
-        _superblock.WriteTo(_container);
-        
+        CreateSuperblock();
         Mount(_superblock);
         
-        _container.WriteBytes(_layout.ContainerSizeBytes - 1, new byte[1], 1);
+        GrowContainerToFullSize();
+        InitializeMetadataRegion();
+        InitializeFreeBlockBitmap();
         
-        for (int i = 0; i < _layout.MetadataBlocks; i++)
-        {
-            _container.WriteBlock(_layout.MetadataStartBlock + i, new byte[_layout.BlockSize]);
-        }
+        ReserveSystemBlocks();
+    }
+    private void ReserveSystemBlocks()
+    {
+        // Superblock
+        _freeBlocks.Allocate();
         
-        var offsetOfBlock = _container.OffsetOfBlock(_layout.FreeBlockMapStartBlock);
-        _container.WriteBytes(offsetOfBlock, new byte[_layout.TotalBlocks], _layout.TotalBlocks);
-        
-        _freeBlocks.Load();
-        
-        _freeBlocks.Allocate(); // superblock
-        
+        // Metadata
         for (int i = 0; i < _layout.MetadataBlocks; i++)
         {
             _freeBlocks.Allocate();
         }
         
+        // Bitmap
         for (int i = 0; i < _layout.BitmapBlocks; i++)
         {
             _freeBlocks.Allocate();
         }
         
         _freeBlocks.Save();
+    }
+    
+    private void InitializeFreeBlockBitmap()
+    {
+        var offsetOfBlock = _container.OffsetOfBlock(_layout.FreeBlockMapStartBlock);
+        _container.WriteBytes(offsetOfBlock, new byte[_layout.TotalBlocks], _layout.TotalBlocks);
+        
+        _freeBlocks.Load();
+    }
+    
+    private void InitializeMetadataRegion()
+    {
+        for (int i = 0; i < _layout.MetadataBlocks; i++)
+        {
+            _container.WriteBlock(_layout.MetadataStartBlock + i, new byte[_layout.BlockSize]);
+        }
+    }
+    
+    private void GrowContainerToFullSize()
+    {
+        _container.WriteBytes(_layout.ContainerSizeBytes - 1, new byte[1], 1);
+    }
+    
+    private void CreateSuperblock()
+    {
+        _superblock = new Superblock(_layout.BlockSize, _layout.TotalBlocks, _layout.MetadataStartBlock);
+        _superblock.WriteTo(_container);
     }
     
     public void Cpin(string externalPath, string internalName) => _ops.Import(externalPath, internalName);

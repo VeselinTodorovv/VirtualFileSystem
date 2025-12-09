@@ -21,6 +21,8 @@ public class FileSystem
     private FileOperations _ops = null!;
     private FileValidator _fileValidator = null!;
     
+    private int _currentDirectoryIndex = 0;
+    
     public FileSystem(string containerPath, int blockSize)
     {
         _layout = new FileSystemLayout(blockSize);
@@ -113,11 +115,11 @@ public class FileSystem
         _superblock.WriteTo(_container);
     }
     
-    public void Cpin(string externalPath, string internalName) => _ops.Import(externalPath, internalName);
+    public void Cpin(string externalPath, string internalName) => _ops.Import(externalPath, internalName, _currentDirectoryIndex);
     
-    public void Cpout(string internalName, string destinationPath) => _ops.Export(internalName, destinationPath);
+    public void Cpout(string internalName, string destinationPath) => _ops.Export(internalName, destinationPath, _currentDirectoryIndex);
     
-    public FileMetadata[] Ls() => _ops.List();
+    public FileMetadata[] Ls() => _ops.List(_currentDirectoryIndex);
     
-    public void Rm(string internalName) => _ops.Remove(internalName);
+    public void Rm(string internalName) => _ops.Remove(internalName, _currentDirectoryIndex);
 }

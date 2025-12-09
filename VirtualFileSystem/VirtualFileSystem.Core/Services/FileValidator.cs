@@ -5,9 +5,9 @@ namespace VirtualFileSystem.Core.Services;
 
 public class FileValidator(MetadataTable metadata)
 {
-    internal int FindFile(string internalName)
+    internal int FindFile(string internalName, int parentIndex)
     {
-        int index = metadata.FindByName(internalName);
+        int index = metadata.FindByName(internalName, parentIndex);
         
         return index == -1
             ? throw new FileNotFoundException(internalName)
@@ -22,9 +22,10 @@ public class FileValidator(MetadataTable metadata)
         }
     }
     
-    internal void EnsureNameAvailable(string internalName)
+    internal void EnsureNameAvailable(string internalName, int parentIndex)
     {
-        if (metadata.FindByName(internalName) != -1)
+        var index = metadata.FindByName(internalName, parentIndex);
+        if (index != -1)
         {
             throw new InvalidOperationException($"A file with the name {internalName} already exists.");
         }
@@ -37,4 +38,6 @@ public class FileValidator(MetadataTable metadata)
             throw new InvalidOperationException($"Filename too long (max {FileMetadataLayout.NameMaxLength}).");
         }
     }
+    
+    // TODO: Implement a check for ensuring enough space available.
 }

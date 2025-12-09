@@ -35,12 +35,12 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         return -1;
     }
     
-    public int FindByName(string name)
+    public int FindByName(string name, int parentIndex)
     {
         for (int i = 0; i < layout.EntryCount; i++)
         {
             var entry = LoadEntry(i);
-            if (entry.IsUsed && StringUtil.Equals(entry.Name, name))
+            if (entry.IsUsed && entry.Name == name && entry.ParentIndex == parentIndex)
             {
                 return i;
             }
@@ -49,7 +49,8 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         return -1;
     }
     
-    public FileMetadata[] ListFiles()
+    // TODO: Use custom List here
+    public FileMetadata[] ListFiles(int parentIndex)
     {
         var arr = new FileMetadata[layout.EntryCount];
         int count = 0;
@@ -57,7 +58,7 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         for (int i = 0; i < layout.EntryCount; i++)
         {
             var entry = LoadEntry(i);
-            if (entry.IsUsed)
+            if (entry.IsUsed && entry.ParentIndex == parentIndex)
             {
                 arr[count++] = entry;
             }

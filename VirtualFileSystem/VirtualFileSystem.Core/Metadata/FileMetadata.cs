@@ -11,11 +11,17 @@ public class FileMetadata
     public int BlockCount;
     public readonly int[] Blocks = new int[FileMetadataLayout.MaxBlocks];
     
+    public int ParentIndex;
+    public virtual MetadataEntryType EntryType => MetadataEntryType.File;
+    
     public byte[] ToBytes()
     {
         byte[] buf = new byte[FileMetadataLayout.EntrySize];
         
         buf[FileMetadataLayout.UsedOffset] = (byte)(IsUsed ? 1 : 0);
+        buf[FileMetadataLayout.TypeOffset] = (byte)EntryType;
+        BitConverter.GetBytes(ParentIndex).CopyTo(buf, FileMetadataLayout.ParentOffset);
+        
         ByteUtil.WriteFixedString(Name, buf, FileMetadataLayout.NameOffset, FileMetadataLayout.NameMaxLength);
         
         BitConverter.GetBytes(Size).CopyTo(buf, FileMetadataLayout.SizeOffset);
@@ -32,13 +38,19 @@ public class FileMetadata
     
     public static FileMetadata FromBytes(byte[] buf)
     {
-        var m = new FileMetadata
+        var type = (MetadataEntryType)buf[FileMetadataLayout.TypeOffset];
+        
+        var m = type switch
         {
-            IsUsed = buf[FileMetadataLayout.UsedOffset] == 1,
-            Name = ByteUtil.ReadFixedString(buf, FileMetadataLayout.NameOffset, FileMetadataLayout.NameMaxLength),
-            Size = BitConverter.ToInt32(buf, FileMetadataLayout.SizeOffset),
-            BlockCount = BitConverter.ToInt32(buf, FileMetadataLayout.BlockCountOffset)
+            MetadataEntryType.Directory => new DirectoryMetadata(),
+            _ => new FileMetadata()
         };
+        
+        m.IsUsed = buf[FileMetadataLayout.UsedOffset] == 1;
+        m.ParentIndex = BitConverter.ToInt32(buf, FileMetadataLayout.ParentOffset);
+        m.Name = ByteUtil.ReadFixedString(buf, FileMetadataLayout.NameOffset, FileMetadataLayout.NameMaxLength);
+        m.Size = BitConverter.ToInt32(buf, FileMetadataLayout.SizeOffset);
+        m.BlockCount = BitConverter.ToInt32(buf, FileMetadataLayout.BlockCountOffset);
         
         for (int i = 0; i < FileMetadataLayout.MaxBlocks; i++)
         {

@@ -7,9 +7,9 @@ namespace VirtualFileSystem.Core.Services;
 
 public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, FileWriter fileWriter, FileReader fileReader, FileValidator fileValidator)
 {
-    public void Import(string externalPath, string internalName)
+    public void Import(string externalPath, string internalName, int parentIndex)
     {
-        fileValidator.EnsureNameAvailable(internalName);
+        fileValidator.EnsureNameAvailable(internalName, parentIndex);
         fileValidator.EnsureExternalFileExists(externalPath);
         fileValidator.ValidateNameLength(internalName);
         
@@ -35,11 +35,11 @@ public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, Fil
         FsLogger.Log($"Allocated blocks: {string.Join(", ", meta.Blocks.Take(meta.BlockCount))}");
     }
     
-    public void Export(string internalName, string destinationPath)
+    public void Export(string internalName, string destinationPath, int parentIndex)
     {
         fileValidator.ValidateNameLength(internalName);
         
-        var index = fileValidator.FindFile(internalName);
+        var index = fileValidator.FindFile(internalName, parentIndex);
         var meta = metadata.LoadEntry(index);
         
         using FileStream output = new(destinationPath, FileMode.Create, FileAccess.Write);
@@ -47,16 +47,16 @@ public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, Fil
         fileReader.ReadFile(meta.Blocks, meta.BlockCount, meta.Size, output);
     }
     
-    public FileMetadata[] List()
+    public FileMetadata[] List(int parentIndex)
     {
-        return metadata.ListFiles();
+        return metadata.ListFiles(parentIndex);
     }
     
-    public void Remove(string internalName)
+    public void Remove(string internalName, int parentIndex)
     {
         fileValidator.ValidateNameLength(internalName);
         
-        int index = fileValidator.FindFile(internalName);
+        int index = fileValidator.FindFile(internalName, parentIndex);
         var meta = metadata.LoadEntry(index);
         
         for (int i = 0; i < meta.BlockCount; i++)

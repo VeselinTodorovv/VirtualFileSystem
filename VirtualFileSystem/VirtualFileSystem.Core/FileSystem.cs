@@ -3,6 +3,7 @@ using VirtualFileSystem.Core.IO;
 using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Metadata;
 using VirtualFileSystem.Core.Services;
+using VirtualFileSystem.Core.Util;
 
 namespace VirtualFileSystem.Core;
 
@@ -17,11 +18,11 @@ public class FileSystem
     
     private FileWriter _fileWriter = null!;
     private FileReader _fileReader = null!;
-    
-    private FileOperations _ops = null!;
     private FileValidator _fileValidator = null!;
     
-    private int _currentDirectoryIndex = 0;
+    private FileOperations _fileOperations = null!;
+    private DirectoryOperations _directoryOperations = null!;
+    private PathResolver _pathResolver = null!;
     
     public FileSystem(string containerPath, int blockSize)
     {
@@ -52,9 +53,12 @@ public class FileSystem
         
         _fileWriter = new FileWriter(_container, _freeBlocks, _layout.BlockSize);
         _fileReader = new FileReader(_container, _layout.BlockSize);
-        
         _fileValidator = new FileValidator(_metadata);
-        _ops = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator);
+        
+        _pathResolver = new PathResolver();
+        
+        _fileOperations = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator);
+        _directoryOperations = new DirectoryOperations(_metadata, _pathResolver);
     }
     
     private void FormatNew()
@@ -115,11 +119,13 @@ public class FileSystem
         _superblock.WriteTo(_container);
     }
     
-    public void Cpin(string externalPath, string internalName) => _ops.Import(externalPath, internalName, _currentDirectoryIndex);
+    public void Cpin(string externalPath, string internalName) => _fileOperations.Import(externalPath, internalName, _pathResolver.CurrentDir);
     
-    public void Cpout(string internalName, string destinationPath) => _ops.Export(internalName, destinationPath, _currentDirectoryIndex);
+    public void Cpout(string internalName, string destinationPath) => _fileOperations.Export(internalName, destinationPath, _pathResolver.CurrentDir);
     
-    public FileMetadata[] Ls() => _ops.List(_currentDirectoryIndex);
+    public FileMetadata[] Ls() => _fileOperations.List(_pathResolver.CurrentDir);
     
-    public void Rm(string internalName) => _ops.Remove(internalName, _currentDirectoryIndex);
+    public void Rm(string internalName) => _fileOperations.Remove(internalName, _pathResolver.CurrentDir);
+    
+    public void Mkdir(string name) => _directoryOperations.MakeDirectory(name);
 }

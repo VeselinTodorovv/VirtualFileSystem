@@ -35,6 +35,11 @@ public class FileSystemService(string containerPath, int blockSize) : IFileSyste
         return result;
     }
     
+    public void Mkdir(string name)
+    {
+        _fs.Mkdir(name);
+    }
+    
     public void SetDebug(bool enabled)
     {
         if (enabled)

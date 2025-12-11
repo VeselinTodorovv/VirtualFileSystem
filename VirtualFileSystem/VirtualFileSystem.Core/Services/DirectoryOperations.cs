@@ -43,6 +43,21 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path)
     
     public void ChangeDirectory(string name)
     {
+        switch (name)
+        {
+            case "\\":
+                path.ChangeDirectory(0);
+                Console.WriteLine("[DEBUG] Changed to root (index 0)");
+                return;
+            
+            case "..":
+                int current = path.CurrentDir;
+                var currentMeta = metadata.LoadEntry(current);
+                path.ChangeDirectory(currentMeta.ParentIndex);
+                Console.WriteLine($"[DEBUG] Moved up to parent (index {currentMeta.ParentIndex})");
+                return;
+        }
+        
         var index = metadata.FindByName(name, path.CurrentDir);
         if (index == -1)
         {
@@ -52,10 +67,11 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path)
         var entry = metadata.LoadEntry(index);
         if (entry is not DirectoryMetadata)
         {
-            throw new  InvalidOperationException($"'{name}' is not a directory.");
+            throw new InvalidOperationException($"'{name}' is not a directory.");
         }
         
         path.ChangeDirectory(index);
+        Console.WriteLine($"[DEBUG] Changed to '{name}' (index {index})");
     }
 
     public void RemoveDirectory(string name)

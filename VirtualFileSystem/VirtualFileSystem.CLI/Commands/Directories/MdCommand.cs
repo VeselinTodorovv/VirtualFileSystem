@@ -18,7 +18,7 @@ public class MdCommand : ICommand
 
         try
         {
-            fs.Mkdir(args[1]);
+            fs.Md(args[1]);
             Console.WriteLine($"[OK] Created '{args[1]}'.");
         }
         catch (Exception e)

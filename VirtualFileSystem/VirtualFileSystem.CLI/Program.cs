@@ -10,43 +10,23 @@ internal static class Program
     
     static Program()
     {
-        Commands = new SimpleDictionary<string, ICommand>(5);
+        Commands = new SimpleDictionary<string, ICommand>(6);
         
         Commands.Add("cpin", new CpinCommand());
         Commands.Add("cpout", new CpoutCommand());
         Commands.Add("ls", new LsCommand());
         Commands.Add("rm", new RmCommand());
+        
         Commands.Add("md", new MdCommand());
+        Commands.Add("cd", new CdCommand());
     }
     
     public static void Main(string[] args)
     {
-        if (args.Length == 0)
-        {
-            PrintUsage();
-            return;
-        }
-        
         const string containerPath = "container.vfs";
         const int blockSize = 4096;
         
-        bool debug = false;
-        
-        if (args[0] == "--debug")
-        {
-            debug = true;
-            
-            // TODO: Prolly not allowed
-            args = args.Skip(1).ToArray();
-        }
-        
-        if (!Commands.TryGetValue(args[0], out var command))
-        {
-            Console.WriteLine($"Unknown command: {args[0]}");
-            PrintUsage();
-            
-            return;
-        }
+        bool debug = args is ["--debug"];
         
         IFileSystem fs = new FileSystemService(containerPath, blockSize);
         
@@ -55,7 +35,46 @@ internal static class Program
             fs.SetDebug(true);
         }
         
-        command?.Execute(fs, args);
+        Console.WriteLine("Virtual File System");
+        Console.WriteLine("Type 'exit' to quit.\n");
+        
+        while (true)
+        {
+            Console.Write("VFS> ");
+            string? input = Console.ReadLine();
+            
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                continue;
+            }
+            
+            if (input is "exit")
+            {
+                break;
+            }
+            
+            var tokens = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            
+            if (tokens.Length == 0)
+            {
+                continue;
+            }
+            
+            if (!Commands.TryGetValue(tokens[0], out var command))
+            {
+                Console.WriteLine($"[ERROR] Unknown command: {tokens[0]}");
+                continue;
+            }
+            
+            try
+            {
+                command?.Execute(fs, tokens);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[ERROR] {e.Message}");
+            }
+        }
     }
     
     private static void PrintUsage()

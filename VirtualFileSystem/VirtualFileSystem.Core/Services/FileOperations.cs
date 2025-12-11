@@ -59,6 +59,11 @@ public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, Fil
         int index = fileValidator.FindFile(internalName, parentIndex);
         var meta = metadata.LoadEntry(index);
         
+        if (meta is DirectoryMetadata)
+        {
+            throw new InvalidOperationException($"'{internalName}' is a directory, not a file.");
+        }
+        
         for (int i = 0; i < meta.BlockCount; i++)
         {
             freeBlocks.Free(meta.Blocks[i]);

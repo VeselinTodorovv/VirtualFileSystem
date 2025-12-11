@@ -4,5 +4,6 @@ namespace VirtualFileSystem.API;
 
 public interface IFileSystem : IImporter, IExporter, IDeleter, IListing, IFileSystemDebug
 {
-    void Mkdir(string name);
+    void Md(string name);
+    void Cd(string name);
 }

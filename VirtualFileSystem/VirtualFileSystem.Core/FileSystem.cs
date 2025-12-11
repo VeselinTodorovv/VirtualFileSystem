@@ -72,6 +72,7 @@ public class FileSystem
         
         ReserveSystemBlocks();
     }
+    
     private void ReserveSystemBlocks()
     {
         // Superblock
@@ -127,5 +128,7 @@ public class FileSystem
     
     public void Rm(string internalName) => _fileOperations.Remove(internalName, _pathResolver.CurrentDir);
     
-    public void Mkdir(string name) => _directoryOperations.MakeDirectory(name);
+    public void Md(string name) => _directoryOperations.MakeDirectory(name);
+    
+    public void Cd(string name) =>  _directoryOperations.ChangeDirectory(name);
 }

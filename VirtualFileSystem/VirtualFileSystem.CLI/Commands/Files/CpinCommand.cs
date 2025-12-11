@@ -1,6 +1,6 @@
 ﻿using VirtualFileSystem.API;
 
-namespace VirtualFileSystem.CLI.Commands;
+namespace VirtualFileSystem.CLI.Commands.Files;
 
 public class CpinCommand : ICommand
 {

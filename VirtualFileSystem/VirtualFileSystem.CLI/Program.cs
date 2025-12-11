@@ -1,6 +1,6 @@
 ﻿using VirtualFileSystem.API;
-using VirtualFileSystem.API.Contracts;
-using VirtualFileSystem.CLI.Commands;
+using VirtualFileSystem.CLI.Commands.Directories;
+using VirtualFileSystem.CLI.Commands.Files;
 
 namespace VirtualFileSystem.CLI;
 
@@ -10,12 +10,13 @@ internal static class Program
     
     static Program()
     {
-        Commands = new SimpleDictionary<string, ICommand>(4);
+        Commands = new SimpleDictionary<string, ICommand>(5);
         
         Commands.Add("cpin", new CpinCommand());
         Commands.Add("cpout", new CpoutCommand());
         Commands.Add("ls", new LsCommand());
         Commands.Add("rm", new RmCommand());
+        Commands.Add("md", new MdCommand());
     }
     
     public static void Main(string[] args)

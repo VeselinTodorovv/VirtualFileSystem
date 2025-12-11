@@ -1,12 +1,12 @@
 ﻿using VirtualFileSystem.API;
 
-namespace VirtualFileSystem.CLI.Commands;
+namespace VirtualFileSystem.CLI.Commands.Directories;
 
-public class RmCommand : ICommand
+public class MdCommand : ICommand
 {
-    public string Name => "rm";
-    public string Description => "Remove a file from the virtual FS.";
-    public string Usage => "rm <internal-name>";
+    public string Name => "md";
+    public string Description => "Remove a directory from the virtual FS.";
+    public string Usage => "md <internal-name>";
     
     public void Execute(IFileSystem fs, string[] args)
     {
@@ -15,11 +15,11 @@ public class RmCommand : ICommand
             Console.WriteLine($"Usage: {Usage}");
             return;
         }
-        
+
         try
         {
-            fs.Rm(args[1]);
-            Console.WriteLine($"[OK] Removed '{args[1]}'.");
+            fs.Mkdir(args[1]);
+            Console.WriteLine($"[OK] Created '{args[1]}'.");
         }
         catch (Exception e)
         {

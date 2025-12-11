@@ -1,5 +1,6 @@
 ﻿using VirtualFileSystem.Core;
 using VirtualFileSystem.Core.Diagnostics;
+using VirtualFileSystem.Core.Metadata;
 
 namespace VirtualFileSystem.API;
 
@@ -29,7 +30,8 @@ public class FileSystemService(string containerPath, int blockSize) : IFileSyste
         var result = new FileEntryInfo[metas.Length];
         for (int i = 0; i < metas.Length; i++)
         {
-            result[i] = new FileEntryInfo(metas[i].Name, metas[i].Size);
+            bool isDir = metas[i] is DirectoryMetadata;
+            result[i] = new FileEntryInfo(metas[i].Name, metas[i].Size, isDir);
         }
         
         return result;

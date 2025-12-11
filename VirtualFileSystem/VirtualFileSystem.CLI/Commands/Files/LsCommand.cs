@@ -23,7 +23,7 @@ public class LsCommand : ICommand
         
         foreach (var file in list)
         {
-            string sizeStr = $"{file.Size} bytes";
+            string sizeStr = file.IsDir ? "" : $"{file.Size} bytes";
             
             Console.WriteLine($"{file.Name,-20}{sizeStr,-10}");
             Console.WriteLine();

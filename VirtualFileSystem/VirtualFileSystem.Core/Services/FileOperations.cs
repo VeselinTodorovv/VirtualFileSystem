@@ -25,7 +25,8 @@ public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, Fil
         {
             IsUsed = true,
             Name = internalName,
-            Size = (int)fileStream.Length
+            Size = (int)fileStream.Length,
+            ParentIndex = parentIndex
         };
         
         meta.BlockCount = fileWriter.WriteFile(fileStream, meta.Blocks);

@@ -23,7 +23,7 @@ public class FileSystem
     private FileOperations _fileOperations = null!;
     private DirectoryOperations _directoryOperations = null!;
     private PathResolver _pathResolver = null!;
-    
+
     public FileSystem(string containerPath, int blockSize)
     {
         _layout = new FileSystemLayout(blockSize);

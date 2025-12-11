@@ -4,8 +4,7 @@ public class SimpleDictionary<TKey, TValue>(int capacity)
 {
     private readonly TKey[] _keys = new TKey[capacity];
     private readonly TValue[] _values = new TValue[capacity];
-    private int _count = 0;
-    public int Count => _count;
+    private int _count;
     
     public void Add(TKey key, TValue value)
     {

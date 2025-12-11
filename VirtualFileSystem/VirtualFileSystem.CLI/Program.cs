@@ -43,7 +43,7 @@ internal static class Program
             Console.Write("VFS> ");
             string? input = Console.ReadLine();
             
-            if (string.IsNullOrWhiteSpace(input))
+            if (input == "")
             {
                 continue;
             }
@@ -63,6 +63,8 @@ internal static class Program
             if (!Commands.TryGetValue(tokens[0], out var command))
             {
                 Console.WriteLine($"[ERROR] Unknown command: {tokens[0]}");
+                PrintUsage();
+                
                 continue;
             }
             

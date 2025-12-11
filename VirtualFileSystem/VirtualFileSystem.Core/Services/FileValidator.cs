@@ -10,7 +10,7 @@ public class FileValidator(MetadataTable metadata)
         int index = metadata.FindByName(internalName, parentIndex);
         
         return index == -1
-            ? throw new FileNotFoundException(internalName)
+            ? throw new FileNotFoundException($"File '{internalName}' not found in the current directory.")
             : index;
     }
     
@@ -18,7 +18,7 @@ public class FileValidator(MetadataTable metadata)
     {
         if (!File.Exists(externalPath))
         {
-            throw new FileNotFoundException(externalPath);
+            throw new FileNotFoundException($"External file '{externalPath}' does not exist.");
         }
     }
     

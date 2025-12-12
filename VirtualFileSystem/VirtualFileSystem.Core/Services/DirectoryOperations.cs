@@ -77,16 +77,16 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path, File
     
     public void RemoveDirectory(string name)
     {
-        int index = metadata.FindByName(name, path.CurrentDir);
-        if (index == -1)
-        {
-            throw new InvalidOperationException($"Directory '{name}' not found.");
-        }
-        
+        int index = fileValidator.FindDirectory(name, path.CurrentDir);
+        RemoveDirectoryByIndex(index);
+    }
+    
+    private void RemoveDirectoryByIndex(int index)
+    {
         var entry = metadata.LoadEntry(index);
         if (entry is not DirectoryMetadata)
         {
-            throw new InvalidOperationException($"'{name}' is not a directory.");
+            throw new InvalidOperationException($"Entry at index {index} is not a directory.");
         }
         
         var children = metadata.ListFiles(index);
@@ -94,7 +94,8 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path, File
         {
             if (child is DirectoryMetadata)
             {
-                RemoveDirectory(child.Name);
+                int childIndex = metadata.FindByName(child.Name, index);
+                RemoveDirectoryByIndex(childIndex);
             }
             else
             {

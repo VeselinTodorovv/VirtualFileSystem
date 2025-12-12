@@ -6,4 +6,5 @@ public interface IFileSystem : IImporter, IExporter, IDeleter, IListing, IFileSy
 {
     void Md(string name);
     void Cd(string name);
+    void Rd(string name);
 }

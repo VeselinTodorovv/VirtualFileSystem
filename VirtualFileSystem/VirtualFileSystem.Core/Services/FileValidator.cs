@@ -14,6 +14,17 @@ public class FileValidator(MetadataTable metadata)
             : index;
     }
     
+    // TODO: It behaves identically to the upper FindFile() method, only the exception message differs
+    // See if there is a cleaner way to do it without writing identical methods multiple times
+    internal int FindDirectory(string internalName, int parentIndex)
+    {
+        var index = metadata.FindByName(internalName, parentIndex);
+        
+        return index == -1
+            ? throw new InvalidOperationException($"No directory named '{internalName}' found.")
+            : index;
+    }
+    
     internal void EnsureExternalFileExists(string externalPath)
     {
         if (!File.Exists(externalPath))

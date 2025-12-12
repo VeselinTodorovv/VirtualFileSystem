@@ -47,6 +47,11 @@ public class FileSystemService(string containerPath, int blockSize) : IFileSyste
         _fs.Cd(name);
     }
     
+    public void Rd(string name)
+    {
+        _fs.Rd(name);
+    }
+
     public void SetDebug(bool enabled)
     {
         if (enabled)

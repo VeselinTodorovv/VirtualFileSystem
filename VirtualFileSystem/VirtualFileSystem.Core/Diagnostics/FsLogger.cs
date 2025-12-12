@@ -3,7 +3,7 @@
 public static class FsLogger
 {
     private static bool _enabled;
-
+    
     public static void Enable() => _enabled = true;
     public static void Disable() => _enabled = false;
     

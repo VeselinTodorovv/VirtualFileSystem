@@ -10,7 +10,7 @@ internal static class Program
     
     static Program()
     {
-        Commands = new SimpleDictionary<string, ICommand>(6);
+        Commands = new SimpleDictionary<string, ICommand>(7);
         
         Commands.Add("cpin", new CpinCommand());
         Commands.Add("cpout", new CpoutCommand());
@@ -19,6 +19,7 @@ internal static class Program
         
         Commands.Add("md", new MdCommand());
         Commands.Add("cd", new CdCommand());
+        Commands.Add("rd", new RdCommand());
     }
     
     public static void Main(string[] args)

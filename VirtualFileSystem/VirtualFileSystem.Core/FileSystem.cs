@@ -23,7 +23,7 @@ public class FileSystem
     private FileOperations _fileOperations = null!;
     private DirectoryOperations _directoryOperations = null!;
     private PathResolver _pathResolver = null!;
-
+    
     public FileSystem(string containerPath, int blockSize)
     {
         _layout = new FileSystemLayout(blockSize);
@@ -58,7 +58,7 @@ public class FileSystem
         _pathResolver = new PathResolver();
         
         _fileOperations = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator);
-        _directoryOperations = new DirectoryOperations(_metadata, _pathResolver);
+        _directoryOperations = new DirectoryOperations(_metadata, _pathResolver, _fileOperations, _fileValidator);
     }
     
     private void FormatNew()
@@ -96,8 +96,9 @@ public class FileSystem
     private void InitializeFreeBlockBitmap()
     {
         var offsetOfBlock = _container.OffsetOfBlock(_layout.FreeBlockMapStartBlock);
-        _container.WriteBytes(offsetOfBlock, new byte[_layout.TotalBlocks], _layout.TotalBlocks);
+        var buffer = new byte[_layout.TotalBlocks];
         
+        _container.WriteBytes(offsetOfBlock, buffer, _layout.TotalBlocks);
         _freeBlocks.Load();
     }
     
@@ -105,13 +106,17 @@ public class FileSystem
     {
         for (int i = 0; i < _layout.MetadataBlocks; i++)
         {
-            _container.WriteBlock(_layout.MetadataStartBlock + i, new byte[_layout.BlockSize]);
+            var buffer = new byte[_layout.BlockSize];
+            _container.WriteBlock(_layout.MetadataStartBlock + i, buffer);
         }
     }
     
     private void GrowContainerToFullSize()
     {
-        _container.WriteBytes(_layout.ContainerSizeBytes - 1, new byte[1], 1);
+        var offset = _layout.ContainerSizeBytes - 1;
+        var buffer = new byte[1];
+        
+        _container.WriteBytes(offset, buffer, 1);
     }
     
     private void CreateSuperblock()
@@ -130,5 +135,7 @@ public class FileSystem
     
     public void Md(string name) => _directoryOperations.MakeDirectory(name);
     
-    public void Cd(string name) =>  _directoryOperations.ChangeDirectory(name);
+    public void Cd(string name) => _directoryOperations.ChangeDirectory(name);
+    
+    public void Rd(string name) => _directoryOperations.RemoveDirectory(name);
 }

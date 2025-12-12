@@ -1,10 +1,11 @@
-﻿using VirtualFileSystem.Core.Layout;
+﻿using VirtualFileSystem.Core.Diagnostics;
+using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Metadata;
 using VirtualFileSystem.Core.Util;
 
 namespace VirtualFileSystem.Core.Services;
 
-public class DirectoryOperations(MetadataTable metadata, PathResolver path)
+public class DirectoryOperations(MetadataTable metadata, PathResolver path, FileOperations fileOperations, FileValidator fileValidator)
 {
     public void MakeDirectory(string name)
     {
@@ -47,22 +48,21 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path)
         {
             case "\\":
                 path.ChangeDirectory(0);
-                Console.WriteLine("[DEBUG] Changed to root (index 0)");
+                
+                FsLogger.Log("Changed to root (index 0)");
                 return;
             
             case "..":
                 int current = path.CurrentDir;
                 var currentMeta = metadata.LoadEntry(current);
                 path.ChangeDirectory(currentMeta.ParentIndex);
-                Console.WriteLine($"[DEBUG] Moved up to parent (index {currentMeta.ParentIndex})");
+                
+                FsLogger.Log($"Moved up to parent (index {currentMeta.ParentIndex})");
+                
                 return;
         }
         
-        var index = metadata.FindByName(name, path.CurrentDir);
-        if (index == -1)
-        {
-            throw new InvalidOperationException($"No directory named '{name}' found.");
-        }
+        int index = fileValidator.FindDirectory(name, path.CurrentDir);
         
         var entry = metadata.LoadEntry(index);
         if (entry is not DirectoryMetadata)
@@ -71,12 +71,38 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path)
         }
         
         path.ChangeDirectory(index);
-        Console.WriteLine($"[DEBUG] Changed to '{name}' (index {index})");
+        
+        FsLogger.Log($"Changed to '{name}' (index {index})");
     }
-
+    
     public void RemoveDirectory(string name)
     {
-        // Note: Recursive
-        throw new NotImplementedException();
+        int index = metadata.FindByName(name, path.CurrentDir);
+        if (index == -1)
+        {
+            throw new InvalidOperationException($"Directory '{name}' not found.");
+        }
+        
+        var entry = metadata.LoadEntry(index);
+        if (entry is not DirectoryMetadata)
+        {
+            throw new InvalidOperationException($"'{name}' is not a directory.");
+        }
+        
+        var children = metadata.ListFiles(index);
+        foreach (var child in children)
+        {
+            if (child is DirectoryMetadata)
+            {
+                RemoveDirectory(child.Name);
+            }
+            else
+            {
+                fileOperations.Remove(child.Name, index);
+            }
+        }
+        
+        entry.IsUsed = false;
+        metadata.SaveEntry(index, entry);
     }
 }

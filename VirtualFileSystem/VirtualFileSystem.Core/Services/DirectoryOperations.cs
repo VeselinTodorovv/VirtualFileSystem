@@ -63,13 +63,6 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path, File
         }
         
         int index = fileValidator.FindDirectory(name, path.CurrentDir);
-        
-        var entry = metadata.LoadEntry(index);
-        if (entry is not DirectoryMetadata)
-        {
-            throw new InvalidOperationException($"'{name}' is not a directory.");
-        }
-        
         path.ChangeDirectory(index);
         
         FsLogger.Log($"Changed to '{name}' (index {index})");

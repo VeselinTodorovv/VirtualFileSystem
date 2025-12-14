@@ -9,16 +9,26 @@ public class FileValidator(MetadataTable metadata)
     {
         int index = metadata.FindByName(internalName, parentIndex);
         
+        var entry = metadata.LoadEntry(index);
+        if (entry is DirectoryMetadata)
+        {
+            throw new InvalidOperationException($"'{internalName}' is a directory, not a file.");
+        }
+        
         return index == -1
             ? throw new FileNotFoundException($"File '{internalName}' not found in the current directory.")
             : index;
     }
     
-    // TODO: It behaves identically to the upper FindFile() method, only the exception message differs
-    // See if there is a cleaner way to do it without writing identical methods multiple times
     internal int FindDirectory(string internalName, int parentIndex)
     {
         var index = metadata.FindByName(internalName, parentIndex);
+        
+        var entry = metadata.LoadEntry(index);
+        if (entry is not DirectoryMetadata)
+        {
+            throw new FileNotFoundException($"Directory '{internalName}' not found in the current directory.");
+        }
         
         return index == -1
             ? throw new InvalidOperationException($"No directory named '{internalName}' found.")

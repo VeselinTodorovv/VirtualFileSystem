@@ -44,19 +44,14 @@ internal static class Program
             Console.Write("VFS> ");
             string? input = Console.ReadLine();
             
-            if (input == "")
-            {
-                continue;
-            }
-            
             if (input is "exit")
             {
                 break;
             }
             
-            var tokens = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var tokens = Tokenize(input);
             
-            if (tokens.Length == 0)
+            if (tokens.Count == 0)
             {
                 continue;
             }
@@ -71,13 +66,57 @@ internal static class Program
             
             try
             {
-                command?.Execute(fs, tokens);
+                command?.Execute(fs, tokens.ToArray());
             }
             catch (Exception e)
             {
                 Console.WriteLine($"[ERROR] {e.Message}");
             }
         }
+    }
+    
+    private static List<string> Tokenize(string input)
+    {
+        List<string> tokens = [];
+        int i = 0;
+        
+        while (i < input.Length)
+        {
+            // Skip leading whitespace
+            while (i < input.Length && input[i] == ' ')
+            {
+                i++;
+            }
+            
+            if (i >= input.Length)
+            {
+                break;
+            }
+            
+            // Start of token
+            int start = i;
+            
+            while (i < input.Length && input[i] != ' ')
+            {
+                i++;
+            }
+            
+            int length = i - start;
+            if (length <= 0)
+            {
+                continue;
+            }
+            
+            string token = "";
+            for (int j = 0; j < length; j++)
+            {
+                token += input[start + j];
+            }
+            
+            tokens.Add(token);
+        }
+        
+        return tokens;
     }
     
     private static void PrintUsage()

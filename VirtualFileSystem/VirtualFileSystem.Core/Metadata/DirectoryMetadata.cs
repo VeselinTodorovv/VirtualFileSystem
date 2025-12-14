@@ -2,5 +2,5 @@
 
 public class DirectoryMetadata : FileMetadata
 {
-    public override MetadataEntryType EntryType => MetadataEntryType.Directory;
+    protected override MetadataEntryType EntryType => MetadataEntryType.Directory;
 }

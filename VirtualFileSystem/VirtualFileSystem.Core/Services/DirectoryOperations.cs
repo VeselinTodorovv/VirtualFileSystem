@@ -88,6 +88,8 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path, File
             if (child is DirectoryMetadata)
             {
                 int childIndex = metadata.FindByName(child.Name, index);
+                
+                FsLogger.Log($"[FS:DEBUG] Removing directory '{child.Name}'");
                 RemoveDirectoryByIndex(childIndex);
             }
             else

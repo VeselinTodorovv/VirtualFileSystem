@@ -12,7 +12,7 @@ public class FileMetadata
     public readonly int[] Blocks = new int[FileMetadataLayout.MaxBlocks];
     
     public int ParentIndex;
-    public virtual MetadataEntryType EntryType => MetadataEntryType.File;
+    protected virtual MetadataEntryType EntryType => MetadataEntryType.File;
     
     public byte[] ToBytes()
     {

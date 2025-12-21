@@ -1,8 +1,9 @@
 ﻿using VirtualFileSystem.Core.Container;
+using VirtualFileSystem.Core.Deduplication;
 
 namespace VirtualFileSystem.Core.IO;
 
-public class FileWriter(ContainerStream container, FreeBlockMap freeBlocks, int b)
+public class FileWriter(ContainerStream container, FreeBlockMap freeBlocks, DeduplicationTable deduplicationTable, int b)
 {
     public int WriteFile(Stream input, int[] blocks)
     {
@@ -16,10 +17,18 @@ public class FileWriter(ContainerStream container, FreeBlockMap freeBlocks, int 
             {
                 Array.Clear(buffer, read, b - read);
             }
+
+            int? existingBlock = deduplicationTable.FindDuplicate(buffer, b);
+            if (existingBlock != null)
+            {
+                blockCount += existingBlock.Value;
+                continue;
+            }
             
             int block = freeBlocks.Allocate();
             container.WriteBlock(block, buffer);
             
+            deduplicationTable.Add(block, buffer, b);
             blocks[blockCount++] = block;
         }
         

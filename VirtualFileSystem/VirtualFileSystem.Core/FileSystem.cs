@@ -1,4 +1,5 @@
 ﻿using VirtualFileSystem.Core.Container;
+using VirtualFileSystem.Core.Deduplication;
 using VirtualFileSystem.Core.IO;
 using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Metadata;
@@ -15,6 +16,8 @@ public class FileSystem
     private Superblock _superblock = null!;
     private MetadataTable _metadata = null!;
     private FreeBlockMap _freeBlocks = null!;
+    
+    private DeduplicationTable _deduplicationTable = null!;
     
     private FileWriter _fileWriter = null!;
     private FileReader _fileReader = null!;
@@ -51,7 +54,8 @@ public class FileSystem
         _metadata = new MetadataTable(_container, metaLayout);
         _freeBlocks = new FreeBlockMap(_container, fbmLayout);
         
-        _fileWriter = new FileWriter(_container, _freeBlocks, _layout.BlockSize);
+        _deduplicationTable = new DeduplicationTable();
+        _fileWriter = new FileWriter(_container, _freeBlocks, _deduplicationTable, _layout.BlockSize);
         _fileReader = new FileReader(_container, _layout.BlockSize);
         _fileValidator = new FileValidator(_metadata);
         

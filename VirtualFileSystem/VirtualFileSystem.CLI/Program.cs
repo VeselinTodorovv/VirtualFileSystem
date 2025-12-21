@@ -24,7 +24,7 @@ internal static class Program
     
     public static void Main(string[] args)
     {
-        const string containerPath = "container.vfs";
+        const string containerPath = "container2.vfs";
         const int blockSize = 4096;
         
         bool debug = args is ["--debug"];
@@ -75,12 +75,12 @@ internal static class Program
         }
     }
     
-    private static List<string> Tokenize(string input)
+    private static List<string> Tokenize(string? input)
     {
         List<string> tokens = [];
         int i = 0;
         
-        while (i < input.Length)
+        while (input != null && i < input.Length)
         {
             // Skip leading whitespace
             while (i < input.Length && input[i] == ' ')

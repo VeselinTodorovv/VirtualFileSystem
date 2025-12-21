@@ -49,7 +49,6 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         return -1;
     }
     
-    // TODO: Use custom List here
     public FileMetadata[] ListFiles(int parentIndex)
     {
         var arr = new FileMetadata[layout.EntryCount];

@@ -1,4 +1,6 @@
-﻿namespace VirtualFileSystem.Core.Deduplication;
+﻿using VirtualFileSystem.Core.Diagnostics;
+
+namespace VirtualFileSystem.Core.Deduplication;
 
 public class DeduplicationTable
 {
@@ -7,13 +9,16 @@ public class DeduplicationTable
     public int? FindDuplicate(byte[] data, int length)
     {
         int hash = BlockHasher.Hash(data, length);
-
+        
         foreach (var entry in _entries)
         {
-            if (entry.Hash == hash && entry.Matches(data, length))
+            if (entry.Hash != hash || !entry.Matches(data, length))
             {
-                return entry.BlockIndex;
+                continue;
             }
+            
+            FsLogger.Log("[FS:DEBUG] Duplicate hash found");
+            return entry.BlockIndex;
         }
         
         return null;

@@ -8,6 +8,10 @@ public class FileValidator(MetadataTable metadata)
     internal int FindFile(string internalName, int parentIndex)
     {
         int index = metadata.FindByName(internalName, parentIndex);
+        if (index == -1)
+        {
+            throw new FileNotFoundException($"File '{internalName}' not found in the current directory.");
+        }
         
         var entry = metadata.LoadEntry(index);
         if (entry is DirectoryMetadata)
@@ -15,14 +19,16 @@ public class FileValidator(MetadataTable metadata)
             throw new InvalidOperationException($"'{internalName}' is a directory, not a file.");
         }
         
-        return index == -1
-            ? throw new FileNotFoundException($"File '{internalName}' not found in the current directory.")
-            : index;
+        return index;
     }
     
     internal int FindDirectory(string internalName, int parentIndex)
     {
-        var index = metadata.FindByName(internalName, parentIndex);
+        int index = metadata.FindByName(internalName, parentIndex);
+        if (index == -1)
+        {
+            throw new InvalidOperationException($"No directory named '{internalName}' found.");
+        }
         
         var entry = metadata.LoadEntry(index);
         if (entry is not DirectoryMetadata)
@@ -30,9 +36,7 @@ public class FileValidator(MetadataTable metadata)
             throw new FileNotFoundException($"Directory '{internalName}' not found in the current directory.");
         }
         
-        return index == -1
-            ? throw new InvalidOperationException($"No directory named '{internalName}' found.")
-            : index;
+        return index;
     }
     
     internal void EnsureExternalFileExists(string externalPath)

@@ -17,11 +17,11 @@ public class FileWriter(ContainerStream container, FreeBlockMap freeBlocks, Dedu
             {
                 Array.Clear(buffer, read, b - read);
             }
-
+            
             int? existingBlock = deduplicationTable.FindDuplicate(buffer, b);
             if (existingBlock != null)
             {
-                blockCount += existingBlock.Value;
+                blocks[blockCount++] = existingBlock.Value;
                 continue;
             }
             

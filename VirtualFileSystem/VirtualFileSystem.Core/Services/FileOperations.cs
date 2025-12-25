@@ -1,11 +1,13 @@
 ﻿using VirtualFileSystem.Core.Container;
+using VirtualFileSystem.Core.Deduplication;
 using VirtualFileSystem.Core.Diagnostics;
 using VirtualFileSystem.Core.IO;
 using VirtualFileSystem.Core.Metadata;
 
 namespace VirtualFileSystem.Core.Services;
 
-public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, FileWriter fileWriter, FileReader fileReader, FileValidator fileValidator)
+public class FileOperations
+    (MetadataTable metadata, FreeBlockMap freeBlocks, FileWriter fileWriter, FileReader fileReader, FileValidator fileValidator, DeduplicationTable deduplicationTable)
 {
     public void Import(string externalPath, string internalName, int parentIndex)
     {
@@ -62,7 +64,13 @@ public class FileOperations(MetadataTable metadata, FreeBlockMap freeBlocks, Fil
         
         for (int i = 0; i < meta.BlockCount; i++)
         {
-            freeBlocks.Free(meta.Blocks[i]);
+            int blockIndex = meta.Blocks[i];
+            
+            bool shouldFree = deduplicationTable.Release(blockIndex);
+            if (shouldFree)
+            {
+                freeBlocks.Free(meta.Blocks[i]);
+            }
         }
         
         FsLogger.Log($"Removing '{internalName}'");

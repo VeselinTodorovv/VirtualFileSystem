@@ -25,7 +25,7 @@ internal static class Program
     public static void Main(string[] args)
     {
         const string containerPath = "container2.vfs";
-        const int blockSize = 4096;
+        const int blockSize = 128;
         
         bool debug = args is ["--debug"];
         

@@ -6,7 +6,7 @@ public class DeduplicationTable
 {
     private readonly List<DedupEntry> _entries = [];
     
-    public int? FindDuplicate(byte[] data, int length)
+    public int? FindDuplicateAndAddRef(byte[] data, int length)
     {
         int hash = BlockHasher.Hash(data, length);
         
@@ -17,31 +17,76 @@ public class DeduplicationTable
                 continue;
             }
             
+            entry.RefCount++;
             FsLogger.Log("[FS:DEBUG] Duplicate hash found");
+            
             return entry.BlockIndex;
         }
         
         return null;
     }
     
-    public void Add(int blockIndex, byte[] data, int length)
+    public void AddNewBlock(int blockIndex, byte[] data, int length)
     {
         int hash = BlockHasher.Hash(data, length);
-        var entry = new DedupEntry(blockIndex, hash, data, length);
+        var entry = new DedupEntry(blockIndex, hash, data, length, 1);
         
         _entries.Add(entry);
+    }
+
+    public bool Release(int blockIndex)
+    {
+        for (int i = 0; i < _entries.Count; i++)
+        {
+            if (_entries[i].BlockIndex != blockIndex)
+            {
+                continue;
+            }
+            
+            _entries[i].RefCount--;
+            if (_entries[i].RefCount > 0)
+            {
+                return false;
+            }
+            
+            _entries.RemoveAt(i);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    public void RegisterExistingReference(int blockIndex, byte[] data, int length)
+    {
+        foreach (var entry in _entries)
+        {
+            if (entry.BlockIndex != blockIndex)
+            {
+                continue;
+            }
+            
+            entry.RefCount++;
+            return;
+        }
+        
+        int hash = BlockHasher.Hash(data, length);
+        _entries.Add(new DedupEntry(blockIndex, hash, data, length, 1));
     }
     
     private class DedupEntry
     {
         public int BlockIndex { get; }
         public int Hash { get; }
+        public int RefCount { get; set; }
+        
         private readonly byte[] _preview;
         
-        public DedupEntry(int index, int hash, byte[] data, int length)
+        public DedupEntry(int index, int hash, byte[] data, int length, int refCount)
         {
             BlockIndex = index;
             Hash = hash;
+            RefCount = refCount;
+            
             _preview = new byte[length];
             
             Array.Copy(data, _preview, length);

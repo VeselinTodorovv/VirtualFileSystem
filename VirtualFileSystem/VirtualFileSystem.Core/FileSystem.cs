@@ -40,7 +40,9 @@ public class FileSystem
         else
         {
             Mount(sb);
+            
             _freeBlocks.Load();
+            RebuildDedupFromMetadata();
         }
     }
     
@@ -61,7 +63,7 @@ public class FileSystem
         
         _pathResolver = new PathResolver();
         
-        _fileOperations = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator);
+        _fileOperations = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator, _deduplicationTable);
         _directoryOperations = new DirectoryOperations(_metadata, _pathResolver, _fileOperations, _fileValidator);
     }
     
@@ -127,6 +129,33 @@ public class FileSystem
     {
         _superblock = new Superblock(_layout.BlockSize, _layout.TotalBlocks, _layout.MetadataStartBlock);
         _superblock.WriteTo(_container);
+    }
+
+    private void RebuildDedupFromMetadata()
+    {
+        byte[] buffer = new byte[_layout.BlockSize];
+
+        for (int i = 0; i < _layout.MetadataLayout.EntryCount; i++)
+        {
+            var entry = _metadata.LoadEntry(i);
+            if (!entry.IsUsed)
+            {
+                continue;
+            }
+
+            if (entry is DirectoryMetadata)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < entry.BlockCount; j++)
+            {
+                int blockIndex = entry.Blocks[j];
+                _container.ReadBlock(blockIndex, buffer);
+                
+                _deduplicationTable.RegisterExistingReference(blockIndex, buffer, _layout.BlockSize);
+            }
+        }
     }
     
     public void Cpin(string externalPath, string internalName) => _fileOperations.Import(externalPath, internalName, _pathResolver.CurrentDir);

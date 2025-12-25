@@ -18,7 +18,7 @@ public class FileWriter(ContainerStream container, FreeBlockMap freeBlocks, Dedu
                 Array.Clear(buffer, read, b - read);
             }
             
-            int? existingBlock = deduplicationTable.FindDuplicate(buffer, b);
+            int? existingBlock = deduplicationTable.FindDuplicateAndAddRef(buffer, b);
             if (existingBlock != null)
             {
                 blocks[blockCount++] = existingBlock.Value;
@@ -28,7 +28,7 @@ public class FileWriter(ContainerStream container, FreeBlockMap freeBlocks, Dedu
             int block = freeBlocks.Allocate();
             container.WriteBlock(block, buffer);
             
-            deduplicationTable.Add(block, buffer, b);
+            deduplicationTable.AddNewBlock(block, buffer, b);
             blocks[blockCount++] = block;
         }
         

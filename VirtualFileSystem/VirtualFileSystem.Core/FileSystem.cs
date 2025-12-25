@@ -29,21 +29,32 @@ public class FileSystem
     
     public FileSystem(string containerPath, int blockSize)
     {
-        _layout = new FileSystemLayout(blockSize);
-        _container = new ContainerStream(containerPath, blockSize);
+        var sb = Superblock.LoadFromPath(containerPath);
         
-        var sb = Superblock.LoadFrom(_container);
         if (sb == null)
         {
-            FormatNew();
-        }
-        else
-        {
-            Mount(sb);
+            _layout = new FileSystemLayout(blockSize);
+            _container = new ContainerStream(containerPath, blockSize);
             
-            _freeBlocks.Load();
-            RebuildDedupFromMetadata();
+            FormatNew();
+            return;
         }
+        
+        // Existing container → container decides block size
+        if (sb.BlockSize != blockSize)
+        {
+            Console.WriteLine(
+                $"[WARN] Container uses block size {sb.BlockSize}, " +
+                $"ignoring provided value {blockSize}.");
+        }
+        
+        _layout = new FileSystemLayout(sb.BlockSize, sb.BlockCount);
+        _container = new ContainerStream(containerPath, sb.BlockSize);
+        
+        Mount(sb);
+        _freeBlocks.Load();
+        
+        RebuildDedupFromMetadata();
     }
     
     private void Mount(Superblock sb)

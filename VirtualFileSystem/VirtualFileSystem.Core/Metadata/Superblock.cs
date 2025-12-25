@@ -33,17 +33,25 @@ public class Superblock
         stream.WriteBlock(0, buf);
     }
     
-    public static Superblock? LoadFrom(ContainerStream stream)
+    public static Superblock? LoadFromPath(string path)
     {
-        if (stream.Length < stream.BlockSize)
+        if (!File.Exists(path))
         {
             return null;
         }
         
-        byte[] buf = new byte[stream.BlockSize];
-        stream.ReadBlock(0, buf);
+        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None);
         
-        string sig = System.Text.Encoding.ASCII.GetString(buf, 0, 4);
+        // signature (4 bytes) + 3 ints (BlockSize, BlockCount, MetadataStartBlock) = 16 bytes
+        if (fs.Length < 16)
+        {
+            return null;
+        }
+        
+        byte[] header = new byte[16];
+        fs.ReadExactly(header, 0, 16);
+        
+        string sig = System.Text.Encoding.ASCII.GetString(header, 0, 4);
         if (sig != Signature)
         {
             return null;
@@ -51,9 +59,9 @@ public class Superblock
         
         return new Superblock
         {
-            BlockSize = BitConverter.ToInt32(buf, 4),
-            BlockCount = BitConverter.ToInt32(buf, 8),
-            MetadataStartBlock = BitConverter.ToInt32(buf, 12)
+            BlockSize = BitConverter.ToInt32(header, 4),
+            BlockCount = BitConverter.ToInt32(header, 8),
+            MetadataStartBlock = BitConverter.ToInt32(header, 12)
         };
     }
 }

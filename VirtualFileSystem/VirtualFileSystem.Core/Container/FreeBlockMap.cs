@@ -37,7 +37,7 @@ public class FreeBlockMap
                 continue;
             }
             
-            _map[i] = 1;
+            MarkUsed(i);
             Save();
             
             FsLogger.Log($"Allocating block {i}");
@@ -52,7 +52,22 @@ public class FreeBlockMap
     {
         FsLogger.Log($"Freeing block {index}");
         
-        _map[index] = 0;
+        MarkFree(index);
         Save();
+    }
+    
+    public void ClearAll()
+    {
+        Array.Clear(_map, 0, _map.Length);
+    }
+    
+    public void MarkUsed(int index)
+    {
+        _map[index] = 1;
+    }
+    
+    private void MarkFree(int index)
+    {
+        _map[index] = 0;
     }
 }

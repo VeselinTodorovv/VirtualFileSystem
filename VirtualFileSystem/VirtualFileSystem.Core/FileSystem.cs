@@ -56,8 +56,9 @@ public class FileSystem
         _container = new ContainerStream(containerPath, sb.BlockSize);
         
         Mount(sb);
-        _freeBlocks.Load();
+        // _freeBlocks.Load();
         
+        FsckRebuildAllocationMap();
         RebuildDedupFromMetadata();
     }
     
@@ -81,7 +82,7 @@ public class FileSystem
         
         _pathResolver = new PathResolver();
         
-        _fileOperations = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator, _deduplication);
+        _fileOperations = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator, _deduplication, _integrity);
         _directoryOperations = new DirectoryOperations(_metadata, _pathResolver, _fileOperations, _fileValidator);
     }
     
@@ -177,11 +178,70 @@ public class FileSystem
             for (int j = 0; j < entry.BlockCount; j++)
             {
                 int blockIndex = entry.Blocks[j];
-                _blockIO.ReadVerified(blockIndex, buffer);
+                
+                try
+                {
+                    _blockIO.ReadVerified(blockIndex, buffer);
+                }
+                catch (InvalidDataException)
+                {
+                    // Keep container usable.
+                    // Corruption will still be caught on operations like 'cpout'.
+                    continue;
+                }
                 
                 _deduplication.RegisterExistingReference(blockIndex, buffer, _layout.BlockSize);
             }
         }
+    }
+
+    private void FsckRebuildAllocationMap()
+    {
+        _freeBlocks.ClearAll();
+        
+        _freeBlocks.MarkUsed(0); // Superblock
+
+        for (int i = 0; i < _layout.MetadataBlocks; i++)
+        {
+            _freeBlocks.MarkUsed(_layout.MetadataStartBlock + i);
+        }
+
+        for (int i = 0; i < _layout.BitmapBlocks; i++)
+        {
+            _freeBlocks.MarkUsed(_layout.FreeBlockMapStartBlock + i);
+        }
+
+        for (int i = 0; i < _layout.IntegrityTableBlocks; i++)
+        {
+            _freeBlocks.MarkUsed(_layout.IntegrityTableLayout.StartBlock + i);
+        }
+
+        for (int i = 0; i < _layout.MetadataLayout.EntryCount; i++)
+        {
+            var entry = _metadata.LoadEntry(i);
+            if (!entry.IsUsed)
+            {
+                continue;
+            }
+
+            if (entry is DirectoryMetadata)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < entry.BlockCount; j++)
+            {
+                int blockIndex = entry.Blocks[j];
+                if (blockIndex < 0 || blockIndex >= _layout.TotalBlocks)
+                {
+                    continue;
+                }
+                
+                _freeBlocks.MarkUsed(blockIndex);
+            }
+        }
+        
+        _freeBlocks.Save();
     }
     
     public void Cpin(string externalPath, string internalName) => _fileOperations.Import(externalPath, internalName, _pathResolver.CurrentDir);

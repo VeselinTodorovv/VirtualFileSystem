@@ -54,7 +54,8 @@ public class DeduplicationTable
             return true;
         }
         
-        return false;
+        // Free if not tracked
+        return true;
     }
     
     public void RegisterExistingReference(int blockIndex, byte[] data, int length)

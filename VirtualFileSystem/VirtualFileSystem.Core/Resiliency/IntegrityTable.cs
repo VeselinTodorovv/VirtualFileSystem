@@ -14,7 +14,9 @@ public class IntegrityTable(ContainerStream stream, IntegrityTableLayout layout)
     public int ReadChecksum(int blockIndex)
     {
         byte[] buffer = new byte[4];
-        stream.ReadBytes(OffsetEntry(blockIndex), buffer, 4);
+        var offset = OffsetEntry(blockIndex);
+        
+        stream.ReadBytes(offset, buffer, 4);
         
         return BitConverter.ToInt32(buffer, 0);
     }
@@ -22,7 +24,9 @@ public class IntegrityTable(ContainerStream stream, IntegrityTableLayout layout)
     public void WriteChecksum(int blockIndex, int checksum)
     {
         byte[] buffer = BitConverter.GetBytes(checksum);
-        stream.WriteBytes(OffsetEntry(blockIndex), buffer, 4);
+        var offset = OffsetEntry(blockIndex);
+        
+        stream.WriteBytes(offset, buffer, 4);
     }
     
     public void ClearChecksum(int blockIndex) => WriteChecksum(blockIndex, 0);

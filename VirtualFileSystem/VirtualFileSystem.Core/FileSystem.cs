@@ -177,7 +177,7 @@ public class FileSystem
             for (int j = 0; j < entry.BlockCount; j++)
             {
                 int blockIndex = entry.Blocks[j];
-                _container.ReadBlock(blockIndex, buffer);
+                _blockIO.ReadVerified(blockIndex, buffer);
                 
                 _deduplication.RegisterExistingReference(blockIndex, buffer, _layout.BlockSize);
             }

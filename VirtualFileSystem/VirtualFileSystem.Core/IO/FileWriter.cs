@@ -3,7 +3,7 @@ using VirtualFileSystem.Core.Deduplication;
 
 namespace VirtualFileSystem.Core.IO;
 
-public class FileWriter(ContainerStream container, FreeBlockMap freeBlocks, DeduplicationTable deduplicationTable, int b)
+public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationTable deduplicationTable, int b)
 {
     public int WriteFile(Stream input, int[] blocks)
     {
@@ -26,7 +26,7 @@ public class FileWriter(ContainerStream container, FreeBlockMap freeBlocks, Dedu
             }
             
             int block = freeBlocks.Allocate();
-            container.WriteBlock(block, buffer);
+            blockIO.WriteWithChecksum(block, buffer);
             
             deduplicationTable.AddNewBlock(block, buffer, b);
             blocks[blockCount++] = block;

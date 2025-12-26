@@ -1,8 +1,6 @@
-﻿using VirtualFileSystem.Core.Container;
+﻿namespace VirtualFileSystem.Core.IO;
 
-namespace VirtualFileSystem.Core.IO;
-
-public class FileReader(ContainerStream container, int blockSize)
+public class FileReader(BlockIO blockIO, int blockSize)
 {
     public void ReadFile(int[] blocks, int blockCount, int fileSize, Stream output)
     {
@@ -11,7 +9,7 @@ public class FileReader(ContainerStream container, int blockSize)
         
         for (int i = 0; i < blockCount; i++)
         {
-            container.ReadBlock(blocks[i], buffer);
+            blockIO.ReadVerified(blocks[i], buffer);
             
             int toWrite = Math.Min(remaining, blockSize);
             output.Write(buffer, 0, toWrite);

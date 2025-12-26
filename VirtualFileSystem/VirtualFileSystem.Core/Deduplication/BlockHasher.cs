@@ -1,6 +1,6 @@
 ﻿namespace VirtualFileSystem.Core.Deduplication;
 
-public class BlockHasher
+public static class BlockHasher
 {
     public static int Hash(byte[] data, int length)
     {

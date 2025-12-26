@@ -1,4 +1,5 @@
 ﻿using VirtualFileSystem.Core.Diagnostics;
+using VirtualFileSystem.Core.Resiliency;
 
 namespace VirtualFileSystem.Core.Deduplication;
 
@@ -8,7 +9,7 @@ public class DeduplicationTable
     
     public int? FindDuplicateAndAddRef(byte[] data, int length)
     {
-        int hash = BlockHasher.Hash(data, length);
+        int hash = IntegrityTable.Checksum(data, length);
         
         foreach (var entry in _entries)
         {
@@ -28,7 +29,7 @@ public class DeduplicationTable
     
     public void AddNewBlock(int blockIndex, byte[] data, int length)
     {
-        int hash = BlockHasher.Hash(data, length);
+        int hash = IntegrityTable.Checksum(data, length);
         var entry = new DedupEntry(blockIndex, hash, data, length, 1);
         
         _entries.Add(entry);
@@ -69,8 +70,10 @@ public class DeduplicationTable
             return;
         }
         
-        int hash = BlockHasher.Hash(data, length);
-        _entries.Add(new DedupEntry(blockIndex, hash, data, length, 1));
+        int hash = IntegrityTable.Checksum(data, length);
+        var dedupEntry = new DedupEntry(blockIndex, hash, data, length, 1);
+        
+        _entries.Add(dedupEntry);
     }
     
     private class DedupEntry

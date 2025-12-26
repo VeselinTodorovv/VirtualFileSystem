@@ -3,6 +3,7 @@ using VirtualFileSystem.Core.Deduplication;
 using VirtualFileSystem.Core.IO;
 using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Metadata;
+using VirtualFileSystem.Core.Resiliency;
 using VirtualFileSystem.Core.Services;
 using VirtualFileSystem.Core.Util;
 
@@ -17,7 +18,10 @@ public class FileSystem
     private MetadataTable _metadata = null!;
     private FreeBlockMap _freeBlocks = null!;
     
-    private DeduplicationTable _deduplicationTable = null!;
+    private DeduplicationTable _deduplication = null!;
+    private IntegrityTable _integrity = null!;
+    
+    private BlockIO _blockIO = null!;
     
     private FileWriter _fileWriter = null!;
     private FileReader _fileReader = null!;
@@ -66,15 +70,18 @@ public class FileSystem
         
         _metadata = new MetadataTable(_container, metaLayout);
         _freeBlocks = new FreeBlockMap(_container, fbmLayout);
+        _deduplication = new DeduplicationTable();
+        _integrity = new IntegrityTable(_container, _layout.IntegrityTableLayout);
         
-        _deduplicationTable = new DeduplicationTable();
-        _fileWriter = new FileWriter(_container, _freeBlocks, _deduplicationTable, _layout.BlockSize);
-        _fileReader = new FileReader(_container, _layout.BlockSize);
+        _blockIO = new BlockIO(_container, _integrity, _layout.BlockSize);
+        
+        _fileWriter = new FileWriter(_blockIO, _freeBlocks, _deduplication, _layout.BlockSize);
+        _fileReader = new FileReader(_blockIO, _layout.BlockSize);
         _fileValidator = new FileValidator(_metadata);
         
         _pathResolver = new PathResolver();
         
-        _fileOperations = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator, _deduplicationTable);
+        _fileOperations = new FileOperations(_metadata, _freeBlocks, _fileWriter, _fileReader, _fileValidator, _deduplication);
         _directoryOperations = new DirectoryOperations(_metadata, _pathResolver, _fileOperations, _fileValidator);
     }
     
@@ -86,6 +93,8 @@ public class FileSystem
         GrowContainerToFullSize();
         InitializeMetadataRegion();
         InitializeFreeBlockBitmap();
+        
+        _integrity.InitializeEmpty();
         
         ReserveSystemBlocks();
     }
@@ -103,6 +112,12 @@ public class FileSystem
         
         // Bitmap
         for (int i = 0; i < _layout.BitmapBlocks; i++)
+        {
+            _freeBlocks.Allocate();
+        }
+        
+        // Integrity table
+        for (int i = 0; i < _layout.IntegrityTableBlocks; i++)
         {
             _freeBlocks.Allocate();
         }
@@ -141,11 +156,11 @@ public class FileSystem
         _superblock = new Superblock(_layout.BlockSize, _layout.TotalBlocks, _layout.MetadataStartBlock);
         _superblock.WriteTo(_container);
     }
-
+    
     private void RebuildDedupFromMetadata()
     {
         byte[] buffer = new byte[_layout.BlockSize];
-
+        
         for (int i = 0; i < _layout.MetadataLayout.EntryCount; i++)
         {
             var entry = _metadata.LoadEntry(i);
@@ -153,18 +168,18 @@ public class FileSystem
             {
                 continue;
             }
-
+            
             if (entry is DirectoryMetadata)
             {
                 continue;
             }
-
+            
             for (int j = 0; j < entry.BlockCount; j++)
             {
                 int blockIndex = entry.Blocks[j];
                 _container.ReadBlock(blockIndex, buffer);
                 
-                _deduplicationTable.RegisterExistingReference(blockIndex, buffer, _layout.BlockSize);
+                _deduplication.RegisterExistingReference(blockIndex, buffer, _layout.BlockSize);
             }
         }
     }

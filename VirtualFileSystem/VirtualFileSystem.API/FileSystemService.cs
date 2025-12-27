@@ -30,8 +30,10 @@ public class FileSystemService(string containerPath, int blockSize) : IFileSyste
         var result = new FileEntryInfo[metas.Length];
         for (int i = 0; i < metas.Length; i++)
         {
-            bool isDir = metas[i] is DirectoryMetadata;
-            result[i] = new FileEntryInfo(metas[i].Name, metas[i].Size, isDir);
+            var fileMetadata = metas[i];
+            bool isDir = fileMetadata is DirectoryMetadata;
+            
+            result[i] = new FileEntryInfo(fileMetadata.Name, fileMetadata.Size, isDir);
         }
         
         return result;
@@ -51,7 +53,7 @@ public class FileSystemService(string containerPath, int blockSize) : IFileSyste
     {
         _fs.Rd(name);
     }
-
+    
     public void SetDebug(bool enabled)
     {
         if (enabled)

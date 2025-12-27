@@ -16,12 +16,6 @@ public class FreeBlockMap
         _map = new byte[_layout.BlockCount];
     }
     
-    public void Load()
-    {
-        var offsetOfBlock = _stream.OffsetOfBlock(_layout.StartBlock);
-        _stream.ReadBytes(offsetOfBlock, _map, _map.Length);
-    }
-    
     public void Save()
     {
         var offsetOfBlock = _stream.OffsetOfBlock(_layout.StartBlock);

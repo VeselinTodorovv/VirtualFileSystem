@@ -21,7 +21,9 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
             int? existingBlock = deduplicationTable.FindDuplicateAndAddRef(buffer, b);
             if (existingBlock != null)
             {
-                blocks[blockCount++] = existingBlock.Value;
+                blocks[blockCount] = existingBlock.Value;
+                blockCount++;
+                
                 continue;
             }
             
@@ -29,7 +31,9 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
             blockIO.WriteWithChecksum(block, buffer);
             
             deduplicationTable.AddNewBlock(block, buffer, b);
-            blocks[blockCount++] = block;
+            
+            blocks[blockCount] = block;
+            blockCount++;
         }
         
         return blockCount;

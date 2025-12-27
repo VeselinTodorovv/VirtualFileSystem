@@ -10,7 +10,6 @@ public class ContainerStream(string path, int blockSize) : IDisposable
     );
     
     public int BlockSize { get; } = blockSize;
-    public long Length => _stream.Length;
     
     public long OffsetOfBlock(int blockIndex)
     {

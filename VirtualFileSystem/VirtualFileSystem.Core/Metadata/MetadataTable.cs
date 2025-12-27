@@ -1,6 +1,5 @@
 ﻿using VirtualFileSystem.Core.Container;
 using VirtualFileSystem.Core.Layout;
-using VirtualFileSystem.Core.Util;
 
 namespace VirtualFileSystem.Core.Metadata;
 
@@ -59,7 +58,8 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
             var entry = LoadEntry(i);
             if (entry.IsUsed && entry.ParentIndex == parentIndex)
             {
-                arr[count++] = entry;
+                arr[count] = entry;
+                count++;
             }
         }
         

@@ -34,7 +34,7 @@ public class DeduplicationTable
         
         _entries.Add(entry);
     }
-
+    
     public bool Release(int blockIndex)
     {
         for (int i = 0; i < _entries.Count; i++)

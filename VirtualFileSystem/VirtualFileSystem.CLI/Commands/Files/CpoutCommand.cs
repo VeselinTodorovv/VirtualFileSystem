@@ -4,7 +4,6 @@ namespace VirtualFileSystem.CLI.Commands.Files;
 
 public class CpoutCommand : ICommand
 {
-    public string Name => "cpout";
     public string Description => "Extract a file from the virtual FS.";
     public string Usage => "cpout <internal-name> <external-path>";
     

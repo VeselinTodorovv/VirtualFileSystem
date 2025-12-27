@@ -4,7 +4,6 @@ namespace VirtualFileSystem.CLI.Commands.Directories;
 
 public class RdCommand : ICommand
 {
-    public string Name => "rd";
     public string Description => "Remove a directory from the virtual FS, along with any subfolders and files inside it.";
     public string Usage => "rd <internal-name>";
     

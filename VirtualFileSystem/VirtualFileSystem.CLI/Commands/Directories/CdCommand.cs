@@ -4,8 +4,6 @@ namespace VirtualFileSystem.CLI.Commands.Directories;
 
 public class CdCommand : ICommand
 {
-
-    public string Name => "cd";
     public string Description => "Change the path in the virtual FS.";
     public string Usage => "cd <argument>";
     

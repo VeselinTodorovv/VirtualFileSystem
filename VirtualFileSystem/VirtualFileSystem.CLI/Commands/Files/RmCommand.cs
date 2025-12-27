@@ -4,7 +4,6 @@ namespace VirtualFileSystem.CLI.Commands.Files;
 
 public class RmCommand : ICommand
 {
-    public string Name => "rm";
     public string Description => "Remove a file from the virtual FS.";
     public string Usage => "rm <internal-name>";
     

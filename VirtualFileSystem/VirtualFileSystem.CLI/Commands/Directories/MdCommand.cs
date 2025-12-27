@@ -4,7 +4,6 @@ namespace VirtualFileSystem.CLI.Commands.Directories;
 
 public class MdCommand : ICommand
 {
-    public string Name => "md";
     public string Description => "Remove a directory from the virtual FS.";
     public string Usage => "md <internal-name>";
     

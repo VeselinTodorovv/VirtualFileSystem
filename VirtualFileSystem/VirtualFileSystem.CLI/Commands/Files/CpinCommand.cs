@@ -4,7 +4,6 @@ namespace VirtualFileSystem.CLI.Commands.Files;
 
 public class CpinCommand : ICommand
 {
-    public string Name => "cpin";
     public string Description => "Copy an external file into the virtual FS.";
     public string Usage => "cpin <external-path> <internal-name>";
     

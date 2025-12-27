@@ -4,7 +4,6 @@ namespace VirtualFileSystem.CLI.Commands.Files;
 
 public class LsCommand : ICommand
 {
-    public string Name => "ls";
     public string Description => "List files in the container.";
     public string Usage => "ls";
     

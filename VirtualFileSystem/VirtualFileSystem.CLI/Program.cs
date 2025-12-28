@@ -24,7 +24,7 @@ internal static class Program
     
     public static void Main(string[] args)
     {
-        const string containerPath = "container2.vfs";
+        const string containerPath = "container.vfs";
         const int blockSize = 128;
         
         bool debug = args is ["--debug"];
@@ -64,14 +64,7 @@ internal static class Program
                 continue;
             }
             
-            try
-            {
-                command?.Execute(fs, tokens.ToArray());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"[ERROR] {e.Message}");
-            }
+            command?.Execute(fs, tokens.ToArray());
         }
     }
     

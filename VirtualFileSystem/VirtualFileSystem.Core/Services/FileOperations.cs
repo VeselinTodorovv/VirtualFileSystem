@@ -37,7 +37,6 @@ public class FileOperations
         metadata.SaveEntry(index, meta);
         
         FsLogger.Log($"Importing '{internalName}' ({externalPath})");
-        FsLogger.Log($"Allocated blocks: {string.Join(", ", meta.Blocks.Take(meta.BlockCount))}");
     }
     
     public void Export(string internalName, string destinationPath, int parentIndex)

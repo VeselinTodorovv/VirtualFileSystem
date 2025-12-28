@@ -10,14 +10,19 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
     public FileMetadata LoadEntry(int index)
     {
         byte[] buffer = new byte[layout.EntrySize];
-        stream.ReadBytes(OffsetOf(index), buffer, buffer.Length);
+        var offset = OffsetOf(index);
+        
+        stream.ReadBytes(offset, buffer, buffer.Length);
         
         return FileMetadata.FromBytes(buffer);
     }
     
     public void SaveEntry(int index, FileMetadata m)
     {
-        stream.WriteBytes(OffsetOf(index), m.ToBytes(), layout.EntrySize);
+        var buffer = m.ToBytes();
+        var offset = OffsetOf(index);
+        
+        stream.WriteBytes(offset, buffer, layout.EntrySize);
     }
     
     public int FindFreeIndex()
@@ -56,11 +61,13 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         for (int i = 0; i < layout.EntryCount; i++)
         {
             var entry = LoadEntry(i);
-            if (entry.IsUsed && entry.ParentIndex == parentIndex)
+            if (!entry.IsUsed || entry.ParentIndex != parentIndex)
             {
-                arr[count] = entry;
-                count++;
+                continue;
             }
+            
+            arr[count] = entry;
+            count++;
         }
         
         // Trim

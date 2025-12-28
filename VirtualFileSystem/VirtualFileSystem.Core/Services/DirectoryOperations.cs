@@ -1,5 +1,4 @@
 ﻿using VirtualFileSystem.Core.Diagnostics;
-using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Metadata;
 using VirtualFileSystem.Core.Util;
 
@@ -9,15 +8,7 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path, File
 {
     public void MakeDirectory(string name)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-        
-        if (name.Length > FileMetadataLayout.NameMaxLength)
-        {
-            throw new ArgumentOutOfRangeException(nameof(name));
-        }
+        fileValidator.ValidateNameLength(name);
         
         if (metadata.FindByName(name, path.CurrentDir) != -1)
         {
@@ -54,11 +45,10 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path, File
             
             case "..":
                 int current = path.CurrentDir;
-                var currentMeta = metadata.LoadEntry(current);
-                path.ChangeDirectory(currentMeta.ParentIndex);
+                var currentEntry = metadata.LoadEntry(current);
+                path.ChangeDirectory(currentEntry.ParentIndex);
                 
-                FsLogger.Log($"Moved up to parent (index {currentMeta.ParentIndex})");
-                
+                FsLogger.Log($"Moved up to parent (index {currentEntry.ParentIndex})");
                 return;
         }
         

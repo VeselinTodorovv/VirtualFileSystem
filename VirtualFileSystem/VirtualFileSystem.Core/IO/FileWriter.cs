@@ -1,5 +1,7 @@
 ﻿using VirtualFileSystem.Core.Container;
 using VirtualFileSystem.Core.Deduplication;
+using VirtualFileSystem.Core.Diagnostics;
+using VirtualFileSystem.Core.Resiliency;
 
 namespace VirtualFileSystem.Core.IO;
 
@@ -18,9 +20,13 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
                 Array.Clear(buffer, read, b - read);
             }
             
+            int hash = IntegrityTable.Checksum(buffer, b); // log only
             int? existingBlock = deduplicationTable.FindDuplicateAndAddRef(buffer, b);
+            
             if (existingBlock != null)
             {
+                FsLogger.Log($"WriteFile: REUSE block={existingBlock.Value}, hash=0x{hash:X8}");
+                
                 blocks[blockCount] = existingBlock.Value;
                 blockCount++;
                 
@@ -28,8 +34,11 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
             }
             
             int block = freeBlocks.Allocate();
-            blockIO.WriteWithChecksum(block, buffer);
+            long blockOff = blockIO.OffsetOfBlock(block);
             
+            FsLogger.Log($"WriteFile: NEW block={block} off=0x{blockOff:X} hash=0x{hash:X8}");
+            
+            blockIO.WriteWithChecksum(block, buffer);
             deduplicationTable.AddNewBlock(block, buffer, b);
             
             blocks[blockCount] = block;

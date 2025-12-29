@@ -1,4 +1,6 @@
-﻿namespace VirtualFileSystem.Core.Container;
+﻿using VirtualFileSystem.Core.Diagnostics;
+
+namespace VirtualFileSystem.Core.Container;
 
 public class ContainerStream(string path, int blockSize) : IDisposable
 {
@@ -32,12 +34,16 @@ public class ContainerStream(string path, int blockSize) : IDisposable
     public void ReadBlock(int blockIndex, byte[] buffer)
     {
         var offsetOfBlock = OffsetOfBlock(blockIndex);
+        
+        FsLogger.Log($"WriteBlock block={blockIndex} off={offsetOfBlock} (0x{offsetOfBlock:X}) size={BlockSize}");
         ReadBytes(offsetOfBlock, buffer, BlockSize);
     }
     
     public void WriteBlock(int blockIndex, byte[] buffer)
     {
         var offsetOfBlock = OffsetOfBlock(blockIndex);
+        
+        FsLogger.Log($"WriteBlock block={blockIndex} off={offsetOfBlock} (0x{offsetOfBlock:X}) size={BlockSize}");
         WriteBytes(offsetOfBlock, buffer, BlockSize);
     }
     

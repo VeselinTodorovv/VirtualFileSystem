@@ -27,7 +27,8 @@ internal static class Program
         const string containerPath = "container.vfs";
         const int blockSize = 128;
         
-        bool debug = args is ["--debug"];
+        // bool debug = args is ["--debug"];
+        bool debug = true;
         
         IFileSystem fs = new FileSystemService(containerPath, blockSize);
         

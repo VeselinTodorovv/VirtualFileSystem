@@ -1,5 +1,6 @@
 ﻿using VirtualFileSystem.Core.Container;
 using VirtualFileSystem.Core.Deduplication;
+using VirtualFileSystem.Core.Diagnostics;
 using VirtualFileSystem.Core.Layout;
 
 namespace VirtualFileSystem.Core.Resiliency;
@@ -18,13 +19,18 @@ public class IntegrityTable(ContainerStream stream, IntegrityTableLayout layout)
         
         stream.ReadBytes(offset, buffer, 4);
         
-        return BitConverter.ToInt32(buffer, 0);
+        int value = BitConverter.ToInt32(buffer, 0);
+        FsLogger.Log($"Integrity.ReadChecksum block={blockIndex} entryOff={offset} (0x{offset:X}) val={value} (0x{value:X8})");
+        
+        return value;
     }
     
     public void WriteChecksum(int blockIndex, int checksum)
     {
         byte[] buffer = BitConverter.GetBytes(checksum);
         var offset = OffsetEntry(blockIndex);
+        
+        FsLogger.Log($"Integrity.WriteChecksum block={blockIndex} entryOff={offset} (0x{offset:X}) val={checksum} (0x{checksum:X8})");
         
         stream.WriteBytes(offset, buffer, 4);
     }

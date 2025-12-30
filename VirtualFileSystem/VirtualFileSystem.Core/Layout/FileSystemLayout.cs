@@ -6,18 +6,18 @@ public class FileSystemLayout(int blockSize, int totalBlocks = 4096, int metadat
     public int TotalBlocks { get; } = totalBlocks;
     
     public int MetadataStartBlock => 1;
-    public int FreeBlockMapStartBlock => MetadataStartBlock + MetadataBlocks;
-    public int IntegrityTableStartBlock => FreeBlockMapStartBlock + BitmapBlocks;
-    public int DataStartBlock => IntegrityTableStartBlock + IntegrityTableBlocks;
-    
     public int MetadataBlocks => (MetadataSizeBytes + BlockSize - 1) / BlockSize;
+    private int MetadataSizeBytes => FileMetadataLayout.EntrySize * metadataEntryCount;
+    
+    public int FreeBlockMapStartBlock => MetadataStartBlock + MetadataBlocks;
     public int BitmapBlocks => (TotalBlocks + BlockSize - 1) / BlockSize;
     
-    private int IntegrityTableBytes => TotalBlocks * 4;
+    public int IntegrityTableStartBlock => FreeBlockMapStartBlock + BitmapBlocks;
     public int IntegrityTableBlocks => (IntegrityTableBytes + BlockSize - 1) / BlockSize;
+    private int IntegrityTableBytes => TotalBlocks * 4;
     
+    public int DataStartBlock => IntegrityTableStartBlock + IntegrityTableBlocks;
     public long ContainerSizeBytes => (long)BlockSize * TotalBlocks;
-    private int MetadataSizeBytes => FileMetadataLayout.EntrySize * metadataEntryCount;
     
     public MetadataLayout MetadataLayout => new(MetadataStartBlock, FileMetadataLayout.EntrySize, metadataEntryCount);
     public FreeBlockMapLayout FreeBlockMapLayout => new(FreeBlockMapStartBlock, TotalBlocks);

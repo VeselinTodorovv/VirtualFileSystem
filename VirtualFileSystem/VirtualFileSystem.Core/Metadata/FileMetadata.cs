@@ -55,7 +55,7 @@ public class FileMetadata
         
         m.IsUsed = buf[FileMetadataLayout.UsedOffset] == 1;
         m.ParentIndex = BitConverter.ToInt32(buf, FileMetadataLayout.ParentOffset);
-        m.Name = ByteUtil.ReadFixedString(buf, FileMetadataLayout.NameOffset, FileMetadataLayout.NameMaxLength);
+        m.Name = ByteUtil.ReadFixedString(buf);
         
         m.ReadTypeSpecific(buf);
         

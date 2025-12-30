@@ -8,6 +8,7 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path, File
 {
     public void MakeDirectory(string name)
     {
+        fileValidator.ValidateDirName(name);
         fileValidator.ValidateNameLength(name);
         
         if (metadata.FindByName(name, path.CurrentDir) != -1)
@@ -60,12 +61,19 @@ public class DirectoryOperations(MetadataTable metadata, PathResolver path, File
     
     public void RemoveDirectory(string name)
     {
+        fileValidator.ValidateDirName(name);
+        
         int index = fileValidator.FindDirectory(name, path.CurrentDir);
         RemoveDirectoryByIndex(index);
     }
     
     private void RemoveDirectoryByIndex(int index)
     {
+        if (index == 0)
+        {
+            throw new InvalidOperationException("Cannot remove root directory.");
+        }
+        
         var entry = metadata.LoadEntry(index);
         if (entry is not DirectoryMetadata)
         {

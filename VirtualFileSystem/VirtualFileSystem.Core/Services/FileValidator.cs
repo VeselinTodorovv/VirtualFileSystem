@@ -14,12 +14,10 @@ public class FileValidator(MetadataTable metadata)
         }
         
         var entry = metadata.LoadEntry(index);
-        if (entry is DirectoryMetadata)
-        {
-            throw new InvalidOperationException($"'{internalName}' is a directory, not a file.");
-        }
         
-        return index;
+        return entry is DirectoryMetadata
+            ? throw new InvalidOperationException($"'{internalName}' is a directory, not a file.")
+            : index;
     }
     
     internal int FindDirectory(string internalName, int parentIndex)
@@ -31,12 +29,10 @@ public class FileValidator(MetadataTable metadata)
         }
         
         var entry = metadata.LoadEntry(index);
-        if (entry is not DirectoryMetadata)
-        {
-            throw new FileNotFoundException($"Directory '{internalName}' not found in the current directory.");
-        }
         
-        return index;
+        return entry is not DirectoryMetadata
+            ? throw new FileNotFoundException($"Directory '{internalName}' not found in the current directory.")
+            : index;
     }
     
     internal void EnsureExternalFileExists(string externalPath)
@@ -61,6 +57,14 @@ public class FileValidator(MetadataTable metadata)
         if (name.Length > FileMetadataLayout.NameMaxLength)
         {
             throw new InvalidOperationException($"Filename too long (max {FileMetadataLayout.NameMaxLength}).");
+        }
+    }
+    
+    internal void ValidateDirName(string name)
+    {
+        if (name is "\\" or "..")
+        {
+            throw new InvalidOperationException("Invalid directory operation.");
         }
     }
     

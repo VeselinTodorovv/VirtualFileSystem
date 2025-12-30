@@ -36,6 +36,7 @@ public abstract class FileSystemBootstrapper
         // repairs
         RebuildAllocationMapFromMetadata(mounted);
         RebuildDeduplicationFromMetadata(mounted);
+        EnsureRootExists(mounted);
         
         return mounted;
     }
@@ -48,6 +49,7 @@ public abstract class FileSystemBootstrapper
         
         context.Integrity.InitializeEmpty();
         
+        InitializeRootDirectory(context);
         ReserveSystemBlocks(context);
     }
     
@@ -76,24 +78,36 @@ public abstract class FileSystemBootstrapper
         context.Container.WriteBytes(offset, buffer, context.Layout.TotalBlocks);
     }
     
+    private static void InitializeRootDirectory(FileSystemContext context)
+    {
+        var root = new DirectoryMetadata
+        {
+            IsUsed = true,
+            Name = "\\",
+            ParentIndex = 0
+        };
+        
+        context.Metadata.SaveEntry(0, root);
+        context.Path.ChangeDirectory(0);
+    }
+    
     private static void ReserveSystemBlocks(FileSystemContext context)
     {
-        // superblock
-        context.FreeBlocks.Allocate();
+        context.FreeBlocks.MarkUsed(0); // superblock
         
         for (int i = 0; i < context.Layout.MetadataBlocks; i++)
         {
-            context.FreeBlocks.Allocate();
+            context.FreeBlocks.MarkUsed(context.Layout.MetadataStartBlock + i);
         }
         
         for (int i = 0; i < context.Layout.BitmapBlocks; i++)
         {
-            context.FreeBlocks.Allocate();
+            context.FreeBlocks.MarkUsed(context.Layout.FreeBlockMapStartBlock + i);
         }
         
         for (int i = 0; i < context.Layout.IntegrityTableBlocks; i++)
         {
-            context.FreeBlocks.Allocate();
+            context.FreeBlocks.MarkUsed(context.Layout.IntegrityTableStartBlock + i);
         }
         
         context.FreeBlocks.Save();
@@ -149,7 +163,7 @@ public abstract class FileSystemBootstrapper
         
         for (int i = 0; i < context.Layout.IntegrityTableBlocks; i++)
         {
-            context.FreeBlocks.MarkUsed(context.Layout.IntegrityTableLayout.StartBlock + i);
+            context.FreeBlocks.MarkUsed(context.Layout.IntegrityTableStartBlock + i);
         }
         
         for (int i = 0; i < context.Layout.MetadataLayout.EntryCount; i++)
@@ -171,5 +185,14 @@ public abstract class FileSystemBootstrapper
         }
         
         context.FreeBlocks.Save();
+    }
+    
+    private static void EnsureRootExists(FileSystemContext context)
+    {
+        var entry0 = context.Metadata.LoadEntry(0);
+        if (!entry0.IsUsed || entry0 is not DirectoryMetadata)
+        {
+            InitializeRootDirectory(context);
+        }
     }
 }

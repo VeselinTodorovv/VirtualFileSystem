@@ -28,7 +28,8 @@ public class ContainerStream(string path, int blockSize) : IDisposable
     {
         _stream.Seek(offset, SeekOrigin.Begin);
         _stream.Write(buffer, 0, count);
-        _stream.Flush();
+        
+        _stream.Flush(flushToDisk: true);
     }
     
     public void ReadBlock(int blockIndex, byte[] buffer)

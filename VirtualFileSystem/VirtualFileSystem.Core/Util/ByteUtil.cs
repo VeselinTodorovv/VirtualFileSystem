@@ -1,4 +1,7 @@
-﻿namespace VirtualFileSystem.Core.Util;
+﻿using System.Text;
+using VirtualFileSystem.Core.Layout;
+
+namespace VirtualFileSystem.Core.Util;
 
 public static class ByteUtil
 {
@@ -9,27 +12,30 @@ public static class ByteUtil
             return;
         }
         
-        byte[] src = System.Text.Encoding.ASCII.GetBytes(value);
+        byte[] src = Encoding.ASCII.GetBytes(value);
         
         int count = Math.Min(src.Length, maxLength);
         Array.Copy(src, 0, buffer, offset, count);
         
-        int offset1 = offset + count;
-        int length = offset + maxLength;
-        
-        for (int i = offset1; i < length; i++)
+        for (int i = offset + count; i < offset + maxLength; i++)
         {
             buffer[i] = 0;
         }
     }
     
-    public static string ReadFixedString(byte[] buffer, int offset, int maxLength)
+    public static string ReadFixedString(byte[] buffer)
+    {
+        string chars = Encoding.ASCII.GetString(buffer, FileMetadataLayout.NameOffset, FileMetadataLayout.NameMaxLength);
+        
+        return Trim(chars);
+    }
+    
+    private static string Trim(string value)
     {
         int length = 0;
-        
-        for (int i = 0; i < maxLength; i++)
+        foreach (var c in value)
         {
-            if (buffer[offset + i] == 0)
+            if (c == '\0')
             {
                 break;
             }
@@ -37,12 +43,12 @@ public static class ByteUtil
             length++;
         }
         
-        char[] chars = new char[length];
+        char[] result = new char[length];
         for (int i = 0; i < length; i++)
         {
-            chars[i] = (char)buffer[offset + i];
+            result[i] = value[i];
         }
         
-        return new string(chars);
+        return new string(result);
     }
 }

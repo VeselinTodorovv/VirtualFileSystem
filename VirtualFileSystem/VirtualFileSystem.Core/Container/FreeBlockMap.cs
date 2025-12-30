@@ -8,23 +8,27 @@ public class FreeBlockMap
     private readonly ContainerStream _stream;
     private readonly FreeBlockMapLayout _layout;
     private readonly byte[] _map;
+    private readonly int _firstDataBlock;
     
-    public FreeBlockMap(ContainerStream stream, FreeBlockMapLayout layout)
+    public FreeBlockMap(ContainerStream stream, FreeBlockMapLayout layout, int firstDataBlock)
     {
         _stream = stream;
         _layout = layout;
+        _firstDataBlock = firstDataBlock;
         _map = new byte[_layout.BlockCount];
     }
     
     public void Save()
     {
+        FsLogger.Log("Saving bitmap changes");
+        
         var offsetOfBlock = _stream.OffsetOfBlock(_layout.StartBlock);
         _stream.WriteBytes(offsetOfBlock, _map, _map.Length);
     }
     
     public int Allocate()
     {
-        for (int i = 0; i < _map.Length; i++)
+        for (int i = _firstDataBlock; i < _map.Length; i++)
         {
             if (_map[i] != 0)
             {
@@ -43,17 +47,14 @@ public class FreeBlockMap
     public void MarkFree(int index)
     {
         FsLogger.Log($"Freeing block {index}");
-        
         _map[index] = 0;
     }
     
     public void MarkUsed(int index)
     {
+        FsLogger.Log($"Marking block {index} as used");
         _map[index] = 1;
     }
     
-    public void ClearAll()
-    {
-        Array.Clear(_map, 0, _map.Length);
-    }
+    public void ClearAll() => Array.Clear(_map, 0, _map.Length);
 }

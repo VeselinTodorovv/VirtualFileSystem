@@ -14,20 +14,17 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         
         stream.ReadBytes(offset, buffer, buffer.Length);
         
-        byte used = buffer[FileMetadataLayout.UsedOffset];
-        byte type = buffer[FileMetadataLayout.TypeOffset];
-
-        bool usedOk = used is 0 or 1;
-        bool typeOk = type is (byte)MetadataEntryType.File or (byte)MetadataEntryType.Directory;
-
-        if (!usedOk || !typeOk)
+        if (!IsEntryHeaderValid(buffer))
         {
-            // treat as empty
-            return new FileMetadata { IsUsed = false };
+            // treat as unused
+            return new FileMetadata
+            {
+                IsUsed = false
+            };
         }
         
         var entry = FileMetadata.FromBytes(buffer);
-
+        
         if (entry.BlockCount is >= 0 and <= FileMetadataLayout.MaxBlocks)
         {
             return entry;
@@ -39,6 +36,17 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         return entry;
     }
     
+    private static bool IsEntryHeaderValid(byte[] buffer)
+    {
+        byte used = buffer[FileMetadataLayout.UsedOffset];
+        byte type = buffer[FileMetadataLayout.TypeOffset];
+        
+        bool usedOk = used is 0 or 1;
+        bool typeOk = type is (byte)MetadataEntryType.File or (byte)MetadataEntryType.Directory;
+        
+        return usedOk && typeOk;
+    }
+
     public void SaveEntry(int index, FileMetadata m)
     {
         var buffer = m.ToBytes();
@@ -49,7 +57,8 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
     
     public int FindFreeIndex()
     {
-        for (int i = 0; i < layout.EntryCount; i++)
+        // skip 0 (root dir reserved)
+        for (int i = 1; i < layout.EntryCount; i++)
         {
             var entry = LoadEntry(i);
             if (!entry.IsUsed)
@@ -80,7 +89,8 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         var arr = new FileMetadata[layout.EntryCount];
         int count = 0;
         
-        for (int i = 0; i < layout.EntryCount; i++)
+        // Skip 0 (root dir)
+        for (int i = 1; i < layout.EntryCount; i++)
         {
             var entry = LoadEntry(i);
             if (!entry.IsUsed || entry.ParentIndex != parentIndex)

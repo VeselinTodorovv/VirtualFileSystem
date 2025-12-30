@@ -14,7 +14,7 @@ public abstract class FileSystemContextFactory
     public static FileSystemContext CreateMounted(ContainerStream container, FileSystemLayout layout, Superblock superblock)
     {
         var metadata = new MetadataTable(container, layout.MetadataLayout);
-        var freeBlocks = new FreeBlockMap(container, layout.FreeBlockMapLayout);
+        var freeBlocks = new FreeBlockMap(container, layout.FreeBlockMapLayout, layout.DataStartBlock);
         
         var dedup = new DeduplicationTable();
         var integrity = new IntegrityTable(container, layout.IntegrityTableLayout);

@@ -8,6 +8,7 @@ public class FileSystemLayout(int blockSize, int totalBlocks = 4096, int metadat
     public int MetadataStartBlock => 1;
     public int FreeBlockMapStartBlock => MetadataStartBlock + MetadataBlocks;
     public int IntegrityTableStartBlock => FreeBlockMapStartBlock + BitmapBlocks;
+    public int DataStartBlock => IntegrityTableStartBlock + IntegrityTableBlocks;
     
     public int MetadataBlocks => (MetadataSizeBytes + BlockSize - 1) / BlockSize;
     public int BitmapBlocks => (TotalBlocks + BlockSize - 1) / BlockSize;

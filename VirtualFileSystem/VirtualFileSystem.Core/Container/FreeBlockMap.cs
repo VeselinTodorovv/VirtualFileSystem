@@ -20,7 +20,7 @@ public class FreeBlockMap
     {
         var offsetOfBlock = _stream.OffsetOfBlock(_layout.StartBlock);
         _stream.WriteBytes(offsetOfBlock, _map, _map.Length);
-    } 
+    }
     
     public int Allocate()
     {
@@ -32,8 +32,6 @@ public class FreeBlockMap
             }
             
             MarkUsed(i);
-            Save();
-            
             FsLogger.Log($"Allocating block {i}");
             
             return i;
@@ -42,17 +40,11 @@ public class FreeBlockMap
         return -1;
     }
     
-    public void Free(int index)
+    public void MarkFree(int index)
     {
         FsLogger.Log($"Freeing block {index}");
         
-        MarkFree(index);
-        Save();
-    }
-    
-    public void ClearAll()
-    {
-        Array.Clear(_map, 0, _map.Length);
+        _map[index] = 0;
     }
     
     public void MarkUsed(int index)
@@ -60,8 +52,8 @@ public class FreeBlockMap
         _map[index] = 1;
     }
     
-    private void MarkFree(int index)
+    public void ClearAll()
     {
-        _map[index] = 0;
+        Array.Clear(_map, 0, _map.Length);
     }
 }

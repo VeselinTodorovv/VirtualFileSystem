@@ -27,14 +27,20 @@ public class FileOperations
         
         var meta = new FileMetadata
         {
-            IsUsed = true,
+            IsUsed = false,
             Name = internalName,
             Size = (int)fileStream.Length,
             ParentIndex = parentIndex
         };
         
-        meta.BlockCount = fileWriter.WriteFile(fileStream, meta.Blocks);
+        // Placeholder
         metadata.SaveEntry(index, meta);
+        
+        meta.BlockCount = fileWriter.WriteFile(fileStream, meta.Blocks);
+        meta.IsUsed = true;
+        
+        metadata.SaveEntry(index, meta);
+        freeBlocks.Save();
         
         FsLogger.Log($"Importing '{internalName}' ({externalPath})");
     }
@@ -74,7 +80,9 @@ public class FileOperations
             }
             
             integrity.ClearChecksum(blockIndex);
-            freeBlocks.Free(blockIndex);
+            
+            freeBlocks.MarkFree(blockIndex);
+            freeBlocks.Save();
         }
         
         FsLogger.Log($"Removing '{internalName}'");

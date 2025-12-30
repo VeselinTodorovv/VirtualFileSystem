@@ -35,7 +35,7 @@ public class ContainerStream(string path, int blockSize) : IDisposable
     {
         var offsetOfBlock = OffsetOfBlock(blockIndex);
         
-        FsLogger.Log($"WriteBlock block={blockIndex} off={offsetOfBlock} (0x{offsetOfBlock:X}) size={BlockSize}");
+        FsLogger.Log($"ReadBlock block={blockIndex} off={offsetOfBlock} (0x{offsetOfBlock:X}) size={BlockSize}");
         ReadBytes(offsetOfBlock, buffer, BlockSize);
     }
     

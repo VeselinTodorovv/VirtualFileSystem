@@ -14,7 +14,29 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         
         stream.ReadBytes(offset, buffer, buffer.Length);
         
-        return FileMetadata.FromBytes(buffer);
+        byte used = buffer[FileMetadataLayout.UsedOffset];
+        byte type = buffer[FileMetadataLayout.TypeOffset];
+
+        bool usedOk = used is 0 or 1;
+        bool typeOk = type is (byte)MetadataEntryType.File or (byte)MetadataEntryType.Directory;
+
+        if (!usedOk || !typeOk)
+        {
+            // treat as empty
+            return new FileMetadata { IsUsed = false };
+        }
+        
+        var entry = FileMetadata.FromBytes(buffer);
+
+        if (entry.BlockCount is >= 0 and <= FileMetadataLayout.MaxBlocks)
+        {
+            return entry;
+        }
+        
+        entry.IsUsed = false;
+        entry.BlockCount = 0;
+        
+        return entry;
     }
     
     public void SaveEntry(int index, FileMetadata m)

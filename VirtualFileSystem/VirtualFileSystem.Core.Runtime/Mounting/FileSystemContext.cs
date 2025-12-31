@@ -1,19 +1,16 @@
-﻿using VirtualFileSystem.Core.Container;
-using VirtualFileSystem.Core.Container.Allocation;
+﻿using VirtualFileSystem.Core.Container.Allocation;
 using VirtualFileSystem.Core.Container.Storage;
 using VirtualFileSystem.Core.Deduplication;
 using VirtualFileSystem.Core.IO;
 using VirtualFileSystem.Core.Layout;
-using VirtualFileSystem.Core.Metadata;
 using VirtualFileSystem.Core.Metadata.Boot;
 using VirtualFileSystem.Core.Metadata.Tables;
 using VirtualFileSystem.Core.Operations;
 using VirtualFileSystem.Core.Resiliency;
-using VirtualFileSystem.Core.Util;
 using VirtualFileSystem.Core.Util.Path;
 using VirtualFileSystem.Core.Validation;
 
-namespace VirtualFileSystem.Core;
+namespace VirtualFileSystem.Core.Mounting;
 
 public class FileSystemContext
 {

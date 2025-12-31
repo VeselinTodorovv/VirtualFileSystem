@@ -1,5 +1,4 @@
 ﻿using VirtualFileSystem.Core.Layout.Constants;
-using VirtualFileSystem.Core.Util;
 using VirtualFileSystem.Core.Util.Text;
 
 namespace VirtualFileSystem.Core.Metadata.Entries;

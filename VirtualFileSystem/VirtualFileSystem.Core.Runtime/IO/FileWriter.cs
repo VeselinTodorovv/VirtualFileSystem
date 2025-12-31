@@ -1,8 +1,6 @@
-﻿using VirtualFileSystem.Core.Container;
-using VirtualFileSystem.Core.Container.Allocation;
+﻿using VirtualFileSystem.Core.Container.Allocation;
 using VirtualFileSystem.Core.Deduplication;
 using VirtualFileSystem.Core.Resiliency;
-using VirtualFileSystem.Core.Util;
 using VirtualFileSystem.Core.Util.Diagnostics;
 
 namespace VirtualFileSystem.Core.IO;

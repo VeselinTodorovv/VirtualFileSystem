@@ -1,5 +1,4 @@
-﻿using VirtualFileSystem.Core.Util;
-using VirtualFileSystem.Core.Util.Diagnostics;
+﻿using VirtualFileSystem.Core.Util.Diagnostics;
 
 namespace VirtualFileSystem.Core.Container.Storage;
 

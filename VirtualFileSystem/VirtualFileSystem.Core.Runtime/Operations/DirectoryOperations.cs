@@ -1,7 +1,5 @@
-﻿using VirtualFileSystem.Core.Metadata;
-using VirtualFileSystem.Core.Metadata.Entries;
+﻿using VirtualFileSystem.Core.Metadata.Entries;
 using VirtualFileSystem.Core.Metadata.Tables;
-using VirtualFileSystem.Core.Util;
 using VirtualFileSystem.Core.Util.Diagnostics;
 using VirtualFileSystem.Core.Util.Path;
 using VirtualFileSystem.Core.Validation;

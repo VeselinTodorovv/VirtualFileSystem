@@ -1,11 +1,9 @@
-﻿using VirtualFileSystem.Core.Container;
-using VirtualFileSystem.Core.Container.Storage;
+﻿using VirtualFileSystem.Core.Container.Storage;
 using VirtualFileSystem.Core.Layout;
-using VirtualFileSystem.Core.Metadata;
 using VirtualFileSystem.Core.Metadata.Boot;
 using VirtualFileSystem.Core.Metadata.Entries;
 
-namespace VirtualFileSystem.Core;
+namespace VirtualFileSystem.Core.Mounting;
 
 public abstract class FileSystemBootstrapper
 {
@@ -47,13 +45,14 @@ public abstract class FileSystemBootstrapper
     private static void FormatNew(FileSystemContext context)
     {
         GrowContainerToFullSize(context);
+        
         InitializeMetadataRegion(context);
         InitializeFreeBlockBitmap(context);
-        
-        context.Integrity.InitializeEmpty();
+        InitializeIntegrityRegion(context);
         
         InitializeRootDirectory(context);
-        ReserveSystemBlocks(context);
+        
+        context.FreeBlocks.Save();
     }
     
     private static void GrowContainerToFullSize(FileSystemContext context)
@@ -66,19 +65,42 @@ public abstract class FileSystemBootstrapper
     
     private static void InitializeMetadataRegion(FileSystemContext context)
     {
+        context.FreeBlocks.MarkUsed(0); // superblock
+        var buffer = new byte[context.Layout.BlockSize];
+        
         for (int i = 0; i < context.Layout.MetadataBlocks; i++)
         {
-            var buffer = new byte[context.Layout.BlockSize];
-            context.Container.WriteBlock(context.Layout.MetadataStartBlock + i, buffer);
+            int block = context.Layout.MetadataStartBlock + i;
+            
+            context.Container.WriteBlock(block, buffer);
+            context.FreeBlocks.MarkUsed(block);
         }
     }
     
     private static void InitializeFreeBlockBitmap(FileSystemContext context)
     {
-        var offset = context.Container.OffsetOfBlock(context.Layout.FreeBlockMapStartBlock);
         var buffer = new byte[context.Layout.TotalBlocks];
         
-        context.Container.WriteBytes(offset, buffer, context.Layout.TotalBlocks);
+        for (int i = 0; i < context.Layout.FreeBlockMapBlocks; i++)
+        {
+            int block = context.Layout.FreeBlockMapStartBlock + i;
+            
+            context.Container.WriteBlock(block, buffer);
+            context.FreeBlocks.MarkUsed(block);
+        }
+    }
+    
+    private static void InitializeIntegrityRegion(FileSystemContext context)
+    {
+        var buffer = new byte[context.Layout.BlockSize];
+        
+        for (int i = 0; i < context.Layout.IntegrityTableBlocks; i++)
+        {
+            int block = context.Layout.IntegrityTableStartBlock + i;
+            
+            context.Container.WriteBlock(block, buffer);
+            context.FreeBlocks.MarkUsed(block);
+        }
     }
     
     private static void InitializeRootDirectory(FileSystemContext context)
@@ -92,28 +114,6 @@ public abstract class FileSystemBootstrapper
         
         context.Metadata.SaveEntry(0, root);
         context.Path.ChangeDirectory(0);
-    }
-    
-    private static void ReserveSystemBlocks(FileSystemContext context)
-    {
-        context.FreeBlocks.MarkUsed(0); // superblock
-        
-        for (int i = 0; i < context.Layout.MetadataBlocks; i++)
-        {
-            context.FreeBlocks.MarkUsed(context.Layout.MetadataStartBlock + i);
-        }
-        
-        for (int i = 0; i < context.Layout.BitmapBlocks; i++)
-        {
-            context.FreeBlocks.MarkUsed(context.Layout.FreeBlockMapStartBlock + i);
-        }
-        
-        for (int i = 0; i < context.Layout.IntegrityTableBlocks; i++)
-        {
-            context.FreeBlocks.MarkUsed(context.Layout.IntegrityTableStartBlock + i);
-        }
-        
-        context.FreeBlocks.Save();
     }
     
     private static void RebuildDeduplicationFromMetadata(FileSystemContext context)
@@ -159,7 +159,7 @@ public abstract class FileSystemBootstrapper
             context.FreeBlocks.MarkUsed(context.Layout.MetadataStartBlock + i);
         }
         
-        for (int i = 0; i < context.Layout.BitmapBlocks; i++)
+        for (int i = 0; i < context.Layout.FreeBlockMapBlocks; i++)
         {
             context.FreeBlocks.MarkUsed(context.Layout.FreeBlockMapStartBlock + i);
         }

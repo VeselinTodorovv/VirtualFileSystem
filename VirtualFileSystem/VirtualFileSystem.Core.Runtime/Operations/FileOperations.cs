@@ -1,12 +1,9 @@
-﻿using VirtualFileSystem.Core.Container;
-using VirtualFileSystem.Core.Container.Allocation;
+﻿using VirtualFileSystem.Core.Container.Allocation;
 using VirtualFileSystem.Core.Deduplication;
 using VirtualFileSystem.Core.IO;
-using VirtualFileSystem.Core.Metadata;
 using VirtualFileSystem.Core.Metadata.Entries;
 using VirtualFileSystem.Core.Metadata.Tables;
 using VirtualFileSystem.Core.Resiliency;
-using VirtualFileSystem.Core.Util;
 using VirtualFileSystem.Core.Util.Diagnostics;
 using VirtualFileSystem.Core.Validation;
 

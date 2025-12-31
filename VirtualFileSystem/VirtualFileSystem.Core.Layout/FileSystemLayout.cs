@@ -13,9 +13,9 @@ public class FileSystemLayout(int blockSize, int totalBlocks = 4096, int metadat
     private int MetadataSizeBytes => FileMetadataLayout.EntrySize * metadataEntryCount;
     
     public int FreeBlockMapStartBlock => MetadataStartBlock + MetadataBlocks;
-    public int BitmapBlocks => (TotalBlocks + BlockSize - 1) / BlockSize;
+    public int FreeBlockMapBlocks => (TotalBlocks + BlockSize - 1) / BlockSize;
     
-    public int IntegrityTableStartBlock => FreeBlockMapStartBlock + BitmapBlocks;
+    public int IntegrityTableStartBlock => FreeBlockMapStartBlock + FreeBlockMapBlocks;
     public int IntegrityTableBlocks => (IntegrityTableBytes + BlockSize - 1) / BlockSize;
     private int IntegrityTableBytes => TotalBlocks * 4;
     

@@ -1,19 +1,13 @@
-﻿using VirtualFileSystem.Core.Container;
-using VirtualFileSystem.Core.Container.Storage;
+﻿using VirtualFileSystem.Core.Container.Storage;
 using VirtualFileSystem.Core.Deduplication;
-using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Layout.Models;
-using VirtualFileSystem.Core.Util;
 using VirtualFileSystem.Core.Util.Diagnostics;
 
 namespace VirtualFileSystem.Core.Resiliency;
 
 public class IntegrityTable(ContainerStream stream, IntegrityTableLayout layout)
 {
-    private long OffsetEntry(int blockIndex)
-    {
-        return stream.OffsetOfBlock(layout.StartBlock) + (long)blockIndex * 4;
-    }
+    private long OffsetEntry(int blockIndex) => stream.OffsetOfBlock(layout.StartBlock) + (long)blockIndex * 4;
     
     public int ReadChecksum(int blockIndex)
     {
@@ -39,15 +33,6 @@ public class IntegrityTable(ContainerStream stream, IntegrityTableLayout layout)
     }
     
     public void ClearChecksum(int blockIndex) => WriteChecksum(blockIndex, 0);
-    
-    public void InitializeEmpty()
-    {
-        byte[] zero = new byte[stream.BlockSize];
-        for (int i = 0; i < layout.BlockCount; i++)
-        {
-            stream.WriteBlock(layout.StartBlock + i, zero);
-        }
-    }
     
     // TODO: Change implementation to CRC32
     public static int Checksum(byte[] data, int length) => BlockHasher.Hash(data, length);

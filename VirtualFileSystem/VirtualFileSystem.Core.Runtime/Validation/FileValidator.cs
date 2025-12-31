@@ -1,6 +1,4 @@
-﻿using VirtualFileSystem.Core.Layout;
-using VirtualFileSystem.Core.Layout.Constants;
-using VirtualFileSystem.Core.Metadata;
+﻿using VirtualFileSystem.Core.Layout.Constants;
 using VirtualFileSystem.Core.Metadata.Entries;
 using VirtualFileSystem.Core.Metadata.Tables;
 

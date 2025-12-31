@@ -1,5 +1,5 @@
-﻿using VirtualFileSystem.Core.Metadata;
-using VirtualFileSystem.Core.Metadata.Entries;
+﻿using VirtualFileSystem.Core.Metadata.Entries;
+using VirtualFileSystem.Core.Mounting;
 
 namespace VirtualFileSystem.Core;
 

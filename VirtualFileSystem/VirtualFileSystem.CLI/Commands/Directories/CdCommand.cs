@@ -19,7 +19,6 @@ public class CdCommand : ICommand
         {
             fs.Cd(args[1]);
             
-            // TODO: Try to improve lol
             Console.WriteLine("[OK] Path changed.");
         }
         catch (Exception e)

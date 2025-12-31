@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\VirtualFileSystem.Core\VirtualFileSystem.Core.csproj" />
+      <ProjectReference Include="..\VirtualFileSystem.Core.Runtime\VirtualFileSystem.Core.Runtime.csproj" />
     </ItemGroup>
 
 </Project>

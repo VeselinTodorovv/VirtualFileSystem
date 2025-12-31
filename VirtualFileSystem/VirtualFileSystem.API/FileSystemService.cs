@@ -1,6 +1,8 @@
 ﻿using VirtualFileSystem.Core;
-using VirtualFileSystem.Core.Diagnostics;
 using VirtualFileSystem.Core.Metadata;
+using VirtualFileSystem.Core.Metadata.Entries;
+using VirtualFileSystem.Core.Util;
+using VirtualFileSystem.Core.Util.Diagnostics;
 
 namespace VirtualFileSystem.API;
 

@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>VirtualFileSystem.Core</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\VirtualFileSystem.Core.Container\VirtualFileSystem.Core.Container.csproj" />
+      <ProjectReference Include="..\VirtualFileSystem.Core.Layout\VirtualFileSystem.Core.Layout.csproj" />
+      <ProjectReference Include="..\VirtualFileSystem.Core.Metadata\VirtualFileSystem.Core.Metadata.csproj" />
+      <ProjectReference Include="..\VirtualFileSystem.Core.Util\VirtualFileSystem.Core.Util.csproj" />
+    </ItemGroup>
+
+</Project>

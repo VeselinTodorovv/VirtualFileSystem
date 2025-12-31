@@ -33,7 +33,6 @@ public class BlockIO(ContainerStream container, IntegrityTable integrity, int bl
     {
         container.WriteBlock(blockIndex, buffer);
         
-        // TODO: Use CRC32
         int checksum = IntegrityTable.Checksum(buffer, blockSize);
         integrity.WriteChecksum(blockIndex, checksum);
     }

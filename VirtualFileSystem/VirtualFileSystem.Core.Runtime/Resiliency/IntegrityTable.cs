@@ -1,5 +1,4 @@
 ﻿using VirtualFileSystem.Core.Container.Storage;
-using VirtualFileSystem.Core.Deduplication;
 using VirtualFileSystem.Core.Layout.Models;
 using VirtualFileSystem.Core.Util.Diagnostics;
 
@@ -34,7 +33,5 @@ public class IntegrityTable(ContainerStream stream, IntegrityTableLayout layout)
     
     public void ClearChecksum(int blockIndex) => WriteChecksum(blockIndex, 0);
     
-    // TODO: Change implementation to CRC32
-    public static int Checksum(byte[] data, int length) => BlockHasher.Hash(data, length);
-    
+    public static int Checksum(byte[] data, int length) => Crc32.Compute(data, length);
 }

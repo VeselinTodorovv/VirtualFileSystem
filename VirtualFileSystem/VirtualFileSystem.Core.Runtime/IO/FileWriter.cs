@@ -1,6 +1,5 @@
 ﻿using VirtualFileSystem.Core.Container.Allocation;
 using VirtualFileSystem.Core.Deduplication;
-using VirtualFileSystem.Core.Resiliency;
 using VirtualFileSystem.Core.Util.Diagnostics;
 
 namespace VirtualFileSystem.Core.IO;
@@ -14,7 +13,7 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
         
         while (TryReadBlock(input, buffer))
         {
-            int hash = IntegrityTable.Checksum(buffer, buffer.Length);
+            int hash = BlockHasher.Hash(buffer, buffer.Length);
             
             int? reusedBlock = TryReuseBlock(buffer, hash);
             if (reusedBlock != null)

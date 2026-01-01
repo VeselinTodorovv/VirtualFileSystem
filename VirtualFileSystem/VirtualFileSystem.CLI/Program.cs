@@ -6,11 +6,11 @@ namespace VirtualFileSystem.CLI;
 
 internal static class Program
 {
-    private static readonly SimpleDictionary<string, ICommand> Commands;
+    private static readonly LinearMap<string, ICommand> Commands;
     
     static Program()
     {
-        Commands = new SimpleDictionary<string, ICommand>(7);
+        Commands = new LinearMap<string, ICommand>(7);
         
         Commands.Add("cpin", new CpinCommand());
         Commands.Add("cpout", new CpoutCommand());

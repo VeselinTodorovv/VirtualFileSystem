@@ -1,24 +1,34 @@
-﻿using VirtualFileSystem.Core.Util.Diagnostics;
+﻿using VirtualFileSystem.Core.Util.DataStructures;
+using VirtualFileSystem.Core.Util.Diagnostics;
 
 namespace VirtualFileSystem.Core.Deduplication;
 
-public class DeduplicationTable
+public partial class DeduplicationTable
 {
-    private readonly List<DedupEntry> _entries = [];
+    // lookup by Hash (for collisions)
+    private readonly ChainedHashMap<long, List<DedupEntry>> _hashLookup = new();
+    
+    // lookup by BlockIndex (for Release/Rebuild)
+    private readonly ChainedHashMap<int, DedupEntry> _blockIndexMap = new();
     
     public int? FindDuplicateAndAddRef(byte[] data, int length)
     {
-        int hash = BlockHasher.Hash(data, length);
+        long hash = BlockHasher.Fnv1A(data, length);
         
-        foreach (var entry in _entries)
+        if (!_hashLookup.TryGetValue(hash, out var bucket) || bucket == null)
         {
-            if (entry.Hash != hash || !entry.Matches(data, length))
+            return null;
+        }
+        
+        foreach (var entry in bucket)
+        {
+            if (!entry.Matches(data, length))
             {
                 continue;
             }
             
             entry.RefCount++;
-            FsLogger.Log("[FS:DEBUG] Duplicate hash found");
+            FsLogger.Log($"[DEDUP] Found existing block {entry.BlockIndex} for hash 0x{hash:X16}");
             
             return entry.BlockIndex;
         }
@@ -28,88 +38,49 @@ public class DeduplicationTable
     
     public void AddNewBlock(int blockIndex, byte[] data, int length)
     {
-        int hash = BlockHasher.Hash(data, length);
+        long hash = BlockHasher.Fnv1A(data, length);
         var entry = new DedupEntry(blockIndex, hash, data, length, 1);
         
-        _entries.Add(entry);
+        if (!_hashLookup.TryGetValue(hash, out var bucket) || bucket == null)
+        {
+            bucket = [];
+            _hashLookup.Add(hash, bucket);
+        }
+        
+        bucket.Add(entry);
+        _blockIndexMap.Add(blockIndex, entry);
     }
     
     public bool Release(int blockIndex)
     {
-        for (int i = 0; i < _entries.Count; i++)
+        if (!_blockIndexMap.TryGetValue(blockIndex, out var entry) || entry == null)
         {
-            if (_entries[i].BlockIndex != blockIndex)
-            {
-                continue;
-            }
-            
-            _entries[i].RefCount--;
-            if (_entries[i].RefCount > 0)
-            {
-                return false;
-            }
-            
-            _entries.RemoveAt(i);
-            return true;
+            return false;
         }
         
-        return false;
+        entry.RefCount--;
+        if (entry.RefCount > 0)
+        {
+            return false;
+        }
+        
+        _blockIndexMap.Remove(blockIndex);
+        if (_hashLookup.TryGetValue(entry.Hash, out var bucket) && bucket != null)
+        {
+            bucket.Remove(entry);
+        }
+        
+        return true;
     }
     
     public void RegisterExistingReference(int blockIndex, byte[] data, int length)
     {
-        foreach (var entry in _entries)
+        if (_blockIndexMap.TryGetValue(blockIndex, out var existingEntry) && existingEntry != null)
         {
-            if (entry.BlockIndex != blockIndex)
-            {
-                continue;
-            }
-            
-            entry.RefCount++;
+            existingEntry.RefCount++;
             return;
         }
         
-        int hash = BlockHasher.Hash(data, length);
-        var dedupEntry = new DedupEntry(blockIndex, hash, data, length, 1);
-        
-        _entries.Add(dedupEntry);
-    }
-    
-    private class DedupEntry
-    {
-        public int BlockIndex { get; }
-        public int Hash { get; }
-        public int RefCount { get; set; }
-        
-        private readonly byte[] _preview;
-        
-        public DedupEntry(int index, int hash, byte[] data, int length, int refCount)
-        {
-            BlockIndex = index;
-            Hash = hash;
-            RefCount = refCount;
-            
-            _preview = new byte[length];
-            
-            Array.Copy(data, _preview, length);
-        }
-        
-        public bool Matches(byte[] data, int length)
-        {
-            if (_preview.Length != length)
-            {
-                return false;
-            }
-            
-            for (int i = 0; i < length; i++)
-            {
-                if (_preview[i] != data[i])
-                {
-                    return false;
-                }
-            }
-            
-            return true;
-        }
+        AddNewBlock(blockIndex, data, length);
     }
 }

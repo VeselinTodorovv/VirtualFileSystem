@@ -13,7 +13,7 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
         
         while (TryReadBlock(input, buffer))
         {
-            int hash = BlockHasher.Hash(buffer, buffer.Length);
+            var hash = BlockHasher.Fnv1A(buffer, buffer.Length);
             
             int? reusedBlock = TryReuseBlock(buffer, hash);
             if (reusedBlock != null)
@@ -49,23 +49,23 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
         return true;
     }
     
-    private int? TryReuseBlock(byte[] buffer, int hash)
+    private int? TryReuseBlock(byte[] buffer, long hash)
     {
         int? existing = deduplicationTable.FindDuplicateAndAddRef(buffer, buffer.Length);
         if (existing != null)
         {
-            FsLogger.Log($"WriteFile: REUSE block={existing.Value}, hash=0x{hash:X8}");
+            FsLogger.Log($"WriteFile: REUSE block={existing.Value}, hash=0x{hash:X16}");
         }
         
         return existing;
     }
     
-    private int AllocateAndWriteBlock(byte[] buffer, int hash)
+    private int AllocateAndWriteBlock(byte[] buffer, long hash)
     {
         int block = freeBlocks.Allocate();
         long blockOff = blockIO.OffsetOfBlock(block);
         
-        FsLogger.Log($"WriteFile: NEW block={block} off=0x{blockOff:X} hash=0x{hash:X8}");
+        FsLogger.Log($"WriteFile: NEW block={block} off=0x{blockOff:X} hash=0x{hash:X16}");
         
         blockIO.WriteWithChecksum(block, buffer);
         deduplicationTable.AddNewBlock(block, buffer, blockSize);

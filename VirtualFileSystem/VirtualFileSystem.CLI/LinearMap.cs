@@ -1,6 +1,6 @@
 ﻿namespace VirtualFileSystem.CLI;
 
-public class SimpleDictionary<TKey, TValue>(int capacity)
+public class LinearMap<TKey, TValue>(int capacity)
 {
     private readonly TKey[] _keys = new TKey[capacity];
     private readonly TValue[] _values = new TValue[capacity];

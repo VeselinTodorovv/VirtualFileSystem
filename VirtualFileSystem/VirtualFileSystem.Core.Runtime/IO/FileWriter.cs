@@ -1,6 +1,5 @@
 ﻿using VirtualFileSystem.Core.Container.Allocation;
 using VirtualFileSystem.Core.Deduplication;
-using VirtualFileSystem.Core.Util.Diagnostics;
 
 namespace VirtualFileSystem.Core.IO;
 
@@ -13,9 +12,7 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
         
         while (TryReadBlock(input, buffer))
         {
-            var hash = BlockHasher.Fnv1A(buffer, buffer.Length);
-            
-            int? reusedBlock = TryReuseBlock(buffer, hash);
+            int? reusedBlock = deduplicationTable.FindDuplicateAndAddRef(buffer, buffer.Length);
             if (reusedBlock != null)
             {
                 blocks[blockCount] = reusedBlock.Value;
@@ -24,7 +21,7 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
                 continue;
             }
             
-            int newBlock = AllocateAndWriteBlock(buffer, hash);
+            int newBlock = AllocateAndWriteBlock(buffer);
             
             blocks[blockCount] = newBlock;
             blockCount++;
@@ -49,23 +46,9 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
         return true;
     }
     
-    private int? TryReuseBlock(byte[] buffer, long hash)
-    {
-        int? existing = deduplicationTable.FindDuplicateAndAddRef(buffer, buffer.Length);
-        if (existing != null)
-        {
-            FsLogger.Log($"WriteFile: REUSE block={existing.Value}, hash=0x{hash:X16}");
-        }
-        
-        return existing;
-    }
-    
-    private int AllocateAndWriteBlock(byte[] buffer, long hash)
+    private int AllocateAndWriteBlock(byte[] buffer)
     {
         int block = freeBlocks.Allocate();
-        long blockOff = blockIO.OffsetOfBlock(block);
-        
-        FsLogger.Log($"WriteFile: NEW block={block} off=0x{blockOff:X} hash=0x{hash:X16}");
         
         blockIO.WriteWithChecksum(block, buffer);
         deduplicationTable.AddNewBlock(block, buffer, blockSize);

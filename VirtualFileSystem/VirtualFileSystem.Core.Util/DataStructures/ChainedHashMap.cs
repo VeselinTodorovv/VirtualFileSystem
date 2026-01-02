@@ -16,9 +16,7 @@ public class ChainedHashMap<TKey, TValue>(int capacity = 16)
         int index = GetBucketIndex(key);
         _buckets[index] ??= new LinkedList<TKey, TValue>();
         
-        _buckets[index]!.AddOrUpdate(key, value, out var isNew);
-        
-        if (isNew)
+        if (_buckets[index]!.TryAdd(key, value))
         {
             _count++;
         }
@@ -86,7 +84,7 @@ public class ChainedHashMap<TKey, TValue>(int capacity = 16)
         int index = GetBucketIndex(key);
         _buckets[index] ??= new LinkedList<TKey, TValue>();
         
-        _buckets[index]?.Push(key, value);
+        _buckets[index]?.TryAdd(key, value);
         _count++;
     }
 }

@@ -48,13 +48,13 @@ public partial class DeduplicationTable
         }
         else
         {
-            FsLogger.Log($"[DEDUP] Info: Hash collision detected for 0x{hash:X16}. Appending to existing bucket list.");
+            FsLogger.Log($"[DEDUP] Info: Hash collision detected for 0x{hash:X16}. Adding to existing bucket list.");
         }
         
         bucket.Add(entry);
         _blockIndexMap.Add(blockIndex, entry);
         
-        FsLogger.Log($"[DEDUP] Registered new unique block: Index {blockIndex}, Hash 0x{hash:X16}");
+        FsLogger.Log($"[DEDUP] Registered new block: Index {blockIndex}, Hash 0x{hash:X16}");
     }
     
     public bool Release(int blockIndex)

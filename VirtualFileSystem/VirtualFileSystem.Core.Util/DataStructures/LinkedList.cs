@@ -21,24 +21,16 @@ public partial class LinkedList<TKey, TValue>
         return null;
     }
     
-    public void Push(TKey key, TValue value)
-    {
-        _head = new Node(key, value, _head);
-    }
-    
-    public void AddOrUpdate(TKey key, TValue value, out bool isNew)
+    public bool TryAdd(TKey key, TValue value)
     {
         var existing = FindNode(key);
         if (existing != null)
         {
-            existing.Value = value;
-            isNew = false;
-            
-            return;
+            return false;
         }
         
-        Push(key, value);
-        isNew = true;
+        _head = new Node(key, value, _head);
+        return true;
     }
     
     public bool TryFind(TKey key, out TValue? value)

@@ -41,15 +41,14 @@ public class ChainedHashMap<TKey, TValue>(int capacity = 16)
     
     private int GetBucketIndex(TKey key)
     {
-        long internalKey = key switch
+        var hash = key switch
         {
-            int i => i,
-            long l => l,
-            _ => key?.GetHashCode() ?? 0
+            int i => (uint)i,
+            long l => (ulong)l,
+            _ => (ulong)(key?.GetHashCode() ?? 0)
         };
         
-        var ensurePositive = internalKey & 0x7FFFFFFF;
-        return (int)(ensurePositive % _buckets.Length);
+        return (int)(hash % (ulong)_buckets.Length);
     }
     
     private void Resize()

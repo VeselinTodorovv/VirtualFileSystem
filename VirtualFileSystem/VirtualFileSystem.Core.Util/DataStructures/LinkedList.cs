@@ -22,7 +22,7 @@ public partial class LinkedList<TKey, TValue>
         _head = new Node(key, value, _head);
         count++;
     }
-
+    
     public bool TryFind(TKey key, out TValue? value)
     {
         var current = _head;
@@ -41,7 +41,7 @@ public partial class LinkedList<TKey, TValue>
         value = default;
         return false;
     }
-
+    
     public void Remove(TKey key, ref int count)
     {
         Node? current = _head;

@@ -8,7 +8,7 @@ public partial class DeduplicationTable
     // lookup by Hash (for collisions)
     private readonly ChainedHashMap<long, List<DedupEntry>> _hashLookup = new();
     
-    // lookup by BlockIndex (for Release/Rebuild)
+    // lookup by BlockIndex (for release/rebuild)
     private readonly ChainedHashMap<int, DedupEntry> _blockIndexMap = new();
     
     public int? FindDuplicateAndAddRef(byte[] data, int length)
@@ -46,9 +46,15 @@ public partial class DeduplicationTable
             bucket = [];
             _hashLookup.Add(hash, bucket);
         }
+        else
+        {
+            FsLogger.Log($"[DEDUP] Info: Hash collision detected for 0x{hash:X16}. Appending to existing bucket list.");
+        }
         
         bucket.Add(entry);
         _blockIndexMap.Add(blockIndex, entry);
+        
+        FsLogger.Log($"[DEDUP] Registered new unique block: Index {blockIndex}, Hash 0x{hash:X16}");
     }
     
     public bool Release(int blockIndex)
@@ -65,9 +71,15 @@ public partial class DeduplicationTable
         }
         
         _blockIndexMap.Remove(blockIndex);
-        if (_hashLookup.TryGetValue(entry.Hash, out var bucket) && bucket != null)
+        if (!_hashLookup.TryGetValue(entry.Hash, out var bucket) || bucket == null)
         {
-            bucket.Remove(entry);
+            return true;
+        }
+        
+        bucket.Remove(entry);
+        if (bucket.Count == 0)
+        {
+            _hashLookup.Remove(entry.Hash);
         }
         
         return true;

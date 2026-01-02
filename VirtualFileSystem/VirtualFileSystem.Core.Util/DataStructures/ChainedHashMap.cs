@@ -14,9 +14,14 @@ public class ChainedHashMap<TKey, TValue>(int capacity = 16)
         }
         
         int index = GetBucketIndex(key);
-        
         _buckets[index] ??= new LinkedList<TKey, TValue>();
-        _buckets[index]?.AddOrUpdate(key, value, ref _count);
+        
+        _buckets[index]!.AddOrUpdate(key, value, out var isNew);
+        
+        if (isNew)
+        {
+            _count++;
+        }
     }
     
     public bool TryGetValue(TKey key, out TValue? value)
@@ -36,7 +41,12 @@ public class ChainedHashMap<TKey, TValue>(int capacity = 16)
     public void Remove(TKey key)
     {
         int index = GetBucketIndex(key);
-        _buckets[index]?.Remove(key, ref _count);
+        var list = _buckets[index];
+        
+        if (list != null && list.Remove(key))
+        {
+            _count--;
+        }
     }
     
     private int GetBucketIndex(TKey key)
@@ -66,8 +76,17 @@ public class ChainedHashMap<TKey, TValue>(int capacity = 16)
             
             foreach (var entry in list.GetAllEntries())
             {
-                Add(entry.Key, entry.Value);
+                InsertInternal(entry.Key, entry.Value);
             }
         }
+    }
+    
+    private void InsertInternal(TKey key, TValue value)
+    {
+        int index = GetBucketIndex(key);
+        _buckets[index] ??= new LinkedList<TKey, TValue>();
+        
+        _buckets[index]?.Push(key, value);
+        _count++;
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace VirtualFileSystem.Core.Util.DataStructures;
 
-public partial class ChainedHashMap<TKey, TValue>
+public partial class LinkedList<TKey, TValue>
 {
     private class Node(TKey key, TValue value, Node? node)
     {

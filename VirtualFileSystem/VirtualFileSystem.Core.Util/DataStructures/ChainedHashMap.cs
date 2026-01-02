@@ -1,8 +1,8 @@
 ﻿namespace VirtualFileSystem.Core.Util.DataStructures;
 
-public partial class ChainedHashMap<TKey, TValue>(int capacity = 16)
+public class ChainedHashMap<TKey, TValue>(int capacity = 16)
 {
-    private Node?[] _buckets = new Node[capacity];
+    private LinkedList<TKey, TValue>?[] _buckets = new LinkedList<TKey, TValue>?[capacity];
     private int _count;
     private const float LoadFactor = 0.75f;
     
@@ -14,41 +14,29 @@ public partial class ChainedHashMap<TKey, TValue>(int capacity = 16)
         }
         
         int index = GetBucketIndex(key);
-        var current = _buckets[index];
         
-        while (current != null)
-        {
-            if (current.Key != null && current.Key.Equals(key)) 
-            {
-                current.Value = value;
-                return;
-            }
-            
-            current = current.Next;
-        }
-        
-        _buckets[index] = new Node(key, value, _buckets[index]);
-        _count++;
+        _buckets[index] ??= new LinkedList<TKey, TValue>();
+        _buckets[index]?.AddOrUpdate(key, value, ref _count);
     }
     
     public bool TryGetValue(TKey key, out TValue? value)
     {
         int index = GetBucketIndex(key);
-        var current = _buckets[index];
+        var list = _buckets[index];
         
-        while (current != null)
+        if (list != null)
         {
-            if (current.Key != null && current.Key.Equals(key))
-            {
-                value = current.Value;
-                return true;
-            }
-            
-            current = current.Next;
+            return list.TryFind(key, out value);
         }
         
         value = default;
         return false;
+    }
+    
+    public void Remove(TKey key)
+    {
+        int index = GetBucketIndex(key);
+        _buckets[index]?.Remove(key, ref _count);
     }
     
     private int GetBucketIndex(TKey key)
@@ -67,45 +55,20 @@ public partial class ChainedHashMap<TKey, TValue>(int capacity = 16)
     private void Resize()
     {
         var oldBuckets = _buckets;
-        _buckets = new Node[oldBuckets.Length * 2];
+        _buckets = new LinkedList<TKey, TValue>[oldBuckets.Length * 2];
         _count = 0;
         
-        foreach (var oldBucket in oldBuckets)
+        foreach (var list in oldBuckets)
         {
-            var current = oldBucket;
-            while (current != null)
+            if (list == null)
             {
-                Add(current.Key, current.Value);
-                current = current.Next;
-            }
-        }
-    }
-    
-    public void Remove(TKey key)
-    {
-        int index = GetBucketIndex(key);
-        Node? current = _buckets[index];
-        Node? previous = null;
-        
-        while (current != null)
-        {
-            if (current.Key != null && current.Key.Equals(key))
-            {
-                if (previous == null)
-                {
-                    _buckets[index] = current.Next;
-                }
-                else
-                {
-                    previous.Next = current.Next;
-                }
-                
-                _count--;
-                return;
+                continue;
             }
             
-            previous = current;
-            current = current.Next;
+            foreach (var entry in list.GetAllEntries())
+            {
+                Add(entry.Key, entry.Value);
+            }
         }
     }
 }

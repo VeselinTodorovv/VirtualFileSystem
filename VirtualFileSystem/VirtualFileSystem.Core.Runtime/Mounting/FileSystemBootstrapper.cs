@@ -139,7 +139,6 @@ public abstract class FileSystemBootstrapper
                 catch (InvalidDataException)
                 {
                     // Keep container usable.
-                    // Corruption will still be caught on operations like 'cpout'
                     continue;
                 }
                 

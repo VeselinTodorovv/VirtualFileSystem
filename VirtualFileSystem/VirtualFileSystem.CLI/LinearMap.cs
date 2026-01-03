@@ -12,13 +12,13 @@ public class LinearMap<TKey, TValue>(int capacity)
         {
             if (_keys[i]!.Equals(key))
             {
-                throw new InvalidOperationException($"The key {key} already exists in the dictionary.");
+                throw new InvalidOperationException($"The key {key} already exists in the map.");
             }
         }
         
         if (_count >= _keys.Length)
         {
-            throw new InvalidOperationException("Dictionary is full");
+            throw new InvalidOperationException("Map is full");
         }
         
         _keys[_count] = key;

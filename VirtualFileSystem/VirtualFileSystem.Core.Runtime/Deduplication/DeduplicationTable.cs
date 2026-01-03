@@ -15,12 +15,12 @@ public partial class DeduplicationTable
     {
         long hash = BlockHasher.Fnv1A(data, length);
         
-        if (!_hashLookup.TryGetValue(hash, out var bucket) || bucket == null)
+        if (!_hashLookup.TryGetValue(hash, out var bucketList) || bucketList == null)
         {
             return null;
         }
         
-        foreach (var entry in bucket)
+        foreach (var entry in bucketList)
         {
             if (!entry.Matches(data, length))
             {

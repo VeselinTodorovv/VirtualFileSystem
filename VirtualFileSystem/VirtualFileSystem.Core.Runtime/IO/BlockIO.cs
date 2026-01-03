@@ -19,8 +19,7 @@ public class BlockIO(ContainerStream container, IntegrityTable integrity, int bl
             
             FsLogger.Log(
                 $"CORRUPTION block={blockIndex} blockOff={blockOff} (0x{blockOff:X}) " +
-                $"expected={expected} (0x{expected:X8}) actual={actual} (0x{actual:X8}) " +
-                $"integrityEntryOff=? (see Integrity.ReadChecksum log above)"
+                $"expected={expected} (0x{expected:X8}) actual={actual} (0x{actual:X8}) "
             );
             
             throw new InvalidDataException($"Block {blockIndex} is corrupted (checksum mismatch).");
@@ -36,6 +35,4 @@ public class BlockIO(ContainerStream container, IntegrityTable integrity, int bl
         int checksum = IntegrityTable.Checksum(buffer, blockSize);
         integrity.WriteChecksum(blockIndex, checksum);
     }
-    
-    public long OffsetOfBlock(int blockIndex) => container.OffsetOfBlock(blockIndex);
 }

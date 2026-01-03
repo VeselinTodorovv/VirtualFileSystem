@@ -25,11 +25,11 @@ public class ChainedHashMap<TKey, TValue>(int capacity = 16)
     public bool TryGetValue(TKey key, out TValue? value)
     {
         int index = GetBucketIndex(key);
-        var list = _buckets[index];
+        var linkedList = _buckets[index];
         
-        if (list != null)
+        if (linkedList != null)
         {
-            return list.TryFind(key, out value);
+            return linkedList.TryFind(key, out value);
         }
         
         value = default;
@@ -39,9 +39,9 @@ public class ChainedHashMap<TKey, TValue>(int capacity = 16)
     public void Remove(TKey key)
     {
         int index = GetBucketIndex(key);
-        var list = _buckets[index];
+        var linkedList = _buckets[index];
         
-        if (list != null && list.Remove(key))
+        if (linkedList != null && linkedList.Remove(key))
         {
             _count--;
         }

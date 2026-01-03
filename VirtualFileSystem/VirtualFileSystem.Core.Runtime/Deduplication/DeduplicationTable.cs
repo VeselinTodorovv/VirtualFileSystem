@@ -15,12 +15,12 @@ public partial class DeduplicationTable
     {
         long hash = BlockHasher.Fnv1A(data, length);
         
-        if (!_hashLookup.TryGetValue(hash, out var bucketList) || bucketList == null)
+        if (!_hashLookup.TryGetValue(hash, out var entryList) || entryList == null)
         {
             return null;
         }
         
-        foreach (var entry in bucketList)
+        foreach (var entry in entryList)
         {
             if (!entry.Matches(data, length))
             {
@@ -41,17 +41,17 @@ public partial class DeduplicationTable
         long hash = BlockHasher.Fnv1A(data, length);
         var entry = new DedupEntry(blockIndex, hash, data, length, 1);
         
-        if (!_hashLookup.TryGetValue(hash, out var bucket) || bucket == null)
+        if (!_hashLookup.TryGetValue(hash, out var entryList) || entryList == null)
         {
-            bucket = [];
-            _hashLookup.Add(hash, bucket);
+            entryList = [];
+            _hashLookup.Add(hash, entryList);
         }
         else
         {
             FsLogger.Log($"[DEDUP] Info: Hash collision detected for 0x{hash:X16}. Adding to existing bucket list.");
         }
         
-        bucket.Add(entry);
+        entryList.Add(entry);
         _blockIndexMap.Add(blockIndex, entry);
         
         FsLogger.Log($"[DEDUP] Registered new block: Index {blockIndex}, Hash 0x{hash:X16}");
@@ -71,13 +71,14 @@ public partial class DeduplicationTable
         }
         
         _blockIndexMap.Remove(blockIndex);
-        if (!_hashLookup.TryGetValue(entry.Hash, out var bucket) || bucket == null)
+        
+        if (!_hashLookup.TryGetValue(entry.Hash, out var entryList) || entryList == null)
         {
             return true;
         }
         
-        bucket.Remove(entry);
-        if (bucket.Count == 0)
+        entryList.Remove(entry);
+        if (entryList.Count == 0)
         {
             _hashLookup.Remove(entry.Hash);
         }

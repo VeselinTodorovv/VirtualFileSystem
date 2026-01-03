@@ -2,7 +2,7 @@
 
 public static class Crc32
 {
-    // Standard CRC-32 (IEEE 802.3) polynomial reversed
+    // CRC-32 polynomial reversed
     private const uint Poly = 0xEDB88320u;
     
     public static int Compute(byte[] buffer, int length)

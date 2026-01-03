@@ -68,6 +68,4 @@ public class FileValidator(MetadataTable metadata)
             throw new InvalidOperationException("Invalid directory operation.");
         }
     }
-    
-    // TODO: Implement a check for ensuring enough space available.
 }

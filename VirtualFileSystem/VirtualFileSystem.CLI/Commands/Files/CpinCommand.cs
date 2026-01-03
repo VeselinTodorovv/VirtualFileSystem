@@ -18,11 +18,11 @@ public class CpinCommand : ICommand
         try
         {
             fs.Cpin(args[1], args[2]);
-            Console.WriteLine($"[OK] Imported '{args[1]}' as '{args[2]}'.");
+            Console.WriteLine($"[OK] Imported '{args[1]}' as '{args[2]}'.\n");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[ERROR] {e.Message}");
+            Console.WriteLine($"[ERROR] {e.Message}\n");
         }
     }
 }

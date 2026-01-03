@@ -18,11 +18,11 @@ public class CpoutCommand : ICommand
         try
         {
             fs.Cpout(args[1], args[2]);
-            Console.WriteLine($"[OK] Extracted '{args[1]}' to '{args[2]}'.");
+            Console.WriteLine($"[OK] Extracted '{args[1]}' to '{args[2]}'.\n");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[ERROR] {e.Message}");
+            Console.WriteLine($"[ERROR] {e.Message}\n");
         }
     }
 }

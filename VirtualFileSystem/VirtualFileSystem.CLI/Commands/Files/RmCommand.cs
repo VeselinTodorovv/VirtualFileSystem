@@ -18,11 +18,11 @@ public class RmCommand : ICommand
         try
         {
             fs.Rm(args[1]);
-            Console.WriteLine($"[OK] Removed '{args[1]}'.");
+            Console.WriteLine($"[OK] Removed '{args[1]}'.\n");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[ERROR] {e.Message}");
+            Console.WriteLine($"[ERROR] {e.Message}\n");
         }
     }
 }

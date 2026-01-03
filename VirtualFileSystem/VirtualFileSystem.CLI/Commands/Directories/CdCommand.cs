@@ -19,11 +19,11 @@ public class CdCommand : ICommand
         {
             fs.Cd(args[1]);
             
-            Console.WriteLine("[OK] Path changed.");
+            Console.WriteLine("[OK] Path changed.\n");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[ERROR] {e.Message}");
+            Console.WriteLine($"[ERROR] {e.Message}\n");
         }
     }
 }

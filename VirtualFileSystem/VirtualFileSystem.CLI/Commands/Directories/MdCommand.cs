@@ -18,11 +18,11 @@ public class MdCommand : ICommand
         try
         {
             fs.Md(args[1]);
-            Console.WriteLine($"[OK] Created '{args[1]}'.");
+            Console.WriteLine($"[OK] Created '{args[1]}'.\n");
         }
         catch (Exception e)
         {
-            Console.WriteLine($"[ERROR] {e.Message}");
+            Console.WriteLine($"[ERROR] {e.Message}\n");
         }
     }
 }

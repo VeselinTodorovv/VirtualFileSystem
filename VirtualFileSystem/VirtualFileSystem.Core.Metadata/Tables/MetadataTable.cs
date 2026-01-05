@@ -27,7 +27,7 @@ public class MetadataTable(ContainerStream stream, MetadataLayout layout)
         
         var entry = FileMetadata.FromBytes(buffer);
         
-        if (entry.BlockCount is >= 0 and <= FileMetadataLayout.MaxBlocks)
+        if (entry.BlockCount >= 0)
         {
             return entry;
         }

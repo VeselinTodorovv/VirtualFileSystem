@@ -82,14 +82,14 @@ public class FileOperations
             }
             
             integrity.ClearChecksum(blockIndex);
-            
             freeBlocks.MarkFree(blockIndex);
-            freeBlocks.Save();
         }
         
-        FsLogger.Log($"Removing '{internalName}'");
+        freeBlocks.Save();
         
         meta.IsUsed = false;
         metadata.SaveEntry(index, meta);
+        
+        FsLogger.Log($"Removing '{internalName}'");
     }
 }

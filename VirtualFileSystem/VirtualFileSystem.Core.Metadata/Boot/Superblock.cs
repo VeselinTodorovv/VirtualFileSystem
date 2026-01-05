@@ -1,4 +1,5 @@
-﻿using VirtualFileSystem.Core.Container.Storage;
+﻿using System.Text;
+using VirtualFileSystem.Core.Container.Storage;
 
 namespace VirtualFileSystem.Core.Metadata.Boot;
 
@@ -24,7 +25,8 @@ public class Superblock
         byte[] buf = new byte[stream.BlockSize];
         
         // Signature (4 bytes)
-        Array.Copy(System.Text.Encoding.ASCII.GetBytes(Signature), 0, buf, 0, 4);
+        var source = Encoding.ASCII.GetBytes(Signature);
+        Array.Copy(source, 0, buf, 0, 4);
         
         BitConverter.GetBytes(BlockSize).CopyTo(buf, 4);
         BitConverter.GetBytes(BlockCount).CopyTo(buf, 8);
@@ -51,7 +53,7 @@ public class Superblock
         byte[] header = new byte[16];
         fs.ReadExactly(header, 0, 16);
         
-        string sig = System.Text.Encoding.ASCII.GetString(header, 0, 4);
+        string sig = Encoding.ASCII.GetString(header, 0, 4);
         if (sig != Signature)
         {
             return null;

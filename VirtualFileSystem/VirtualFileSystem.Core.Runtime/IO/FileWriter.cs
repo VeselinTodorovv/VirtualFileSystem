@@ -1,10 +1,13 @@
 ﻿using VirtualFileSystem.Core.Container.Allocation;
 using VirtualFileSystem.Core.Deduplication;
+using VirtualFileSystem.Core.Layout.Constants;
 
 namespace VirtualFileSystem.Core.IO;
 
 public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationTable deduplicationTable, int blockSize)
 {
+    private const int IndirectTriggerIndex = FileMetadataLayout.MaxBlocks - 1;
+    
     public int WriteFile(Stream input, int[] blocks)
     {
         int blockCount = 0;
@@ -13,17 +16,13 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
         while (TryReadBlock(input, buffer))
         {
             int? reusedBlock = deduplicationTable.FindDuplicateAndAddRef(buffer, buffer.Length);
-            if (reusedBlock != null)
+            int targetBlock = reusedBlock ?? AllocateAndWriteBlock(buffer, blockCount, blocks);
+            
+            if (blockCount < FileMetadataLayout.MaxBlocks - 1)
             {
-                blocks[blockCount] = reusedBlock.Value;
-                blockCount++;
-                
-                continue;
+                blocks[blockCount] = targetBlock;
             }
             
-            int newBlock = AllocateAndWriteBlock(buffer);
-            
-            blocks[blockCount] = newBlock;
             blockCount++;
         }
         
@@ -46,13 +45,50 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
         return true;
     }
     
-    private int AllocateAndWriteBlock(byte[] buffer)
+    private int AllocateAndWriteBlock(byte[] buffer, int currentBlockIndex, int[] metadataBlocks)
     {
-        int block = freeBlocks.Allocate();
+        int newBlock = freeBlocks.Allocate();
         
-        blockIO.WriteWithChecksum(block, buffer);
-        deduplicationTable.AddNewBlock(block, buffer, blockSize);
+        blockIO.WriteWithChecksum(newBlock, buffer);
+        deduplicationTable.AddNewBlock(newBlock, buffer, blockSize);
         
-        return block;
+        if (currentBlockIndex >= IndirectTriggerIndex)
+        {
+            UpdateIndirectIndex(currentBlockIndex, newBlock, metadataBlocks);
+        }
+        
+        return newBlock;
+    }
+    
+    private void UpdateIndirectIndex(int currentBlockIndex, int dataBlock, int[] metadataBlocks)
+    {
+        if (currentBlockIndex == IndirectTriggerIndex)
+        {
+            // create index block
+            int indirectIndexBlock = freeBlocks.Allocate();
+            metadataBlocks[IndirectTriggerIndex] = indirectIndexBlock;
+            
+            byte[] indexData = new byte[blockSize];
+            BitConverter.GetBytes(dataBlock).CopyTo(indexData, 0);
+            blockIO.WriteWithChecksum(indirectIndexBlock, indexData);
+        }
+        else
+        {
+            // add pointer to index block
+            int indirectIndexBlock = metadataBlocks[IndirectTriggerIndex];
+            int entryIndex = currentBlockIndex - IndirectTriggerIndex;
+            int offset = entryIndex * 4;
+            
+            if (offset + 4 > blockSize)
+            {
+                throw new InvalidOperationException("File size exceeds maximum addressable blocks for this BlockSize.");
+            }
+            
+            byte[] indexData = new byte[blockSize];
+            
+            blockIO.ReadVerified(indirectIndexBlock, indexData);
+            BitConverter.GetBytes(dataBlock).CopyTo(indexData, offset);
+            blockIO.WriteWithChecksum(indirectIndexBlock, indexData);
+        }
     }
 }

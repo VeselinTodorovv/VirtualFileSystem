@@ -3,7 +3,7 @@ using VirtualFileSystem.Core.Mounting;
 
 namespace VirtualFileSystem.Core;
 
-public class FileSystem(string containerPath, int blockSize)
+public class FileSystem(string containerPath, int blockSize) : IDisposable
 {
     private readonly FileSystemContext _context = FileSystemBootstrapper.OpenOrCreate(containerPath, blockSize);
     
@@ -20,4 +20,9 @@ public class FileSystem(string containerPath, int blockSize)
     public void Cd(string name) => _context.DirOps.ChangeDirectory(name);
     
     public void Rd(string name) => _context.DirOps.RemoveDirectory(name);
+    
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
 }

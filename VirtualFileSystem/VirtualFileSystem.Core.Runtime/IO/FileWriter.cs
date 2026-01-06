@@ -80,8 +80,7 @@ public class FileWriter(BlockIO blockIO, FreeBlockMap freeBlocks, DeduplicationT
             blockIO.ReadVerified(indirectBlock, indexData);
         }
         
-        BitConverter.TryWriteBytes(indexData.AsSpan(offset), physicalDataBlock);
-        
+        BitConverter.GetBytes(physicalDataBlock).CopyTo(indexData, offset);
         blockIO.WriteWithChecksum(indirectBlock, indexData);
     }
 }

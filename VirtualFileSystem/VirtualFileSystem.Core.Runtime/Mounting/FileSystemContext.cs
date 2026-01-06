@@ -12,7 +12,7 @@ using VirtualFileSystem.Core.Validation;
 
 namespace VirtualFileSystem.Core.Mounting;
 
-public class FileSystemContext
+public class FileSystemContext : IDisposable
 {
     public required ContainerStream Container { get; init; }
     public required FileSystemLayout Layout { get; init; }
@@ -33,4 +33,9 @@ public class FileSystemContext
     public required DirectoryOperations DirOps { get; init; }
     
     public required PathResolver Path { get; init; }
+    
+    public void Dispose()
+    {
+        Container.Dispose();
+    }
 }

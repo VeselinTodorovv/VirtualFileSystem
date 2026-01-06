@@ -55,7 +55,6 @@ public class FileOperations
         var meta = metadata.LoadEntry(index);
         
         using FileStream output = new(destinationPath, FileMode.Create, FileAccess.Write);
-        
         fileReader.ReadFile(meta.Blocks, meta.BlockCount, meta.Size, output);
     }
     

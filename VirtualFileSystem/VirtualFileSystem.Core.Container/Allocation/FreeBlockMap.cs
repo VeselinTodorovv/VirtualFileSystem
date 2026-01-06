@@ -4,7 +4,7 @@ using VirtualFileSystem.Core.Util.Diagnostics;
 
 namespace VirtualFileSystem.Core.Container.Allocation;
 
-public class FreeBlockMap
+public class FreeBlockMap : IDisposable
 {
     private readonly ContainerStream _stream;
     private readonly FreeBlockMapLayout _layout;
@@ -58,4 +58,9 @@ public class FreeBlockMap
     }
     
     public void ClearAll() => Array.Clear(_map, 0, _map.Length);
+    
+    public void Dispose()
+    {
+        _stream.Dispose();
+    }
 }

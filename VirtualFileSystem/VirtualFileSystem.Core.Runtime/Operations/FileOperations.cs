@@ -1,17 +1,19 @@
 ﻿using VirtualFileSystem.Core.Container.Allocation;
 using VirtualFileSystem.Core.Deduplication;
 using VirtualFileSystem.Core.IO;
+using VirtualFileSystem.Core.Layout;
 using VirtualFileSystem.Core.Metadata.Entries;
 using VirtualFileSystem.Core.Metadata.Tables;
 using VirtualFileSystem.Core.Resiliency;
 using VirtualFileSystem.Core.Util.Diagnostics;
+using VirtualFileSystem.Core.Util.Layout;
 using VirtualFileSystem.Core.Validation;
 
 namespace VirtualFileSystem.Core.Operations;
 
 public class FileOperations
     (MetadataTable metadata, FreeBlockMap freeBlocks, FileWriter fileWriter, FileReader fileReader, FileValidator fileValidator,
-        DeduplicationTable deduplicationTable, IntegrityTable integrity)
+        DeduplicationTable deduplicationTable, IntegrityTable integrity, BlockIO blockIO, FileSystemLayout layout)
 {
     public void Import(string externalPath, string internalName, int parentIndex)
     {
@@ -70,18 +72,24 @@ public class FileOperations
         int index = fileValidator.FindFile(internalName, parentIndex);
         var meta = metadata.LoadEntry(index);
         
-        for (int i = 0; i < meta.BlockCount; i++)
+        byte[]? indirectCache = null;
+        for (int logical = 0; logical < meta.BlockCount; logical++)
         {
-            int blockIndex = meta.Blocks[i];
-            
-            bool shouldFree = deduplicationTable.Release(blockIndex);
-            if (!shouldFree)
+            if (logical == BlockResolver.IndirectTriggerIndex)
             {
-                continue;
+                int indexBlock = meta.Blocks[BlockResolver.IndirectTriggerIndex];
+                indirectCache = new byte[layout.BlockSize];
+                blockIO.ReadVerified(indexBlock, indirectCache);
             }
             
-            integrity.ClearChecksum(blockIndex);
-            freeBlocks.MarkFree(blockIndex);
+            int physical = BlockResolver.GetPhysicalIndex(logical, meta.Blocks, indirectCache);
+            ReleaseBlock(physical);
+        }
+        
+        if (meta.BlockCount > BlockResolver.IndirectTriggerIndex)
+        {
+            int indexBlock = meta.Blocks[BlockResolver.IndirectTriggerIndex];
+            ReleaseBlock(indexBlock);
         }
         
         freeBlocks.Save();
@@ -90,5 +98,16 @@ public class FileOperations
         metadata.SaveEntry(index, meta);
         
         FsLogger.Log($"Removing '{internalName}'");
+    }
+    
+    private void ReleaseBlock(int blockIndex)
+    {
+        if (!deduplicationTable.Release(blockIndex))
+        {
+            return;
+        }
+            
+        integrity.ClearChecksum(blockIndex);
+        freeBlocks.MarkFree(blockIndex);
     }
 }

@@ -30,7 +30,7 @@ public abstract class FileSystemContextFactory
         
         var path = new PathResolver();
         
-        var fileOps = new FileOperations(metadata, freeBlocks, writer, reader, validator, dedup, integrity);
+        var fileOps = new FileOperations(metadata, freeBlocks, writer, reader, validator, dedup, integrity, blockIO, layout);
         var dirOps = new DirectoryOperations(metadata, path, fileOps, validator);
         
         return new FileSystemContext

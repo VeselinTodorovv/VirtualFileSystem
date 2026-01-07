@@ -30,13 +30,13 @@ partial class Form1
     {
         components = new System.ComponentModel.Container();
         splitContainer1 = new SplitContainer();
-        treeView1 = new TreeView();
+        treeView = new TreeView();
         panelButtons = new Panel();
         btnMd = new Button();
         btnRoot = new Button();
         btnUp = new Button();
         btnImport = new Button();
-        listView1 = new ListView();
+        listView = new ListView();
         columnName = new ColumnHeader();
         columnSize = new ColumnHeader();
         contextMenuFiles = new ContextMenuStrip(components);
@@ -61,25 +61,24 @@ partial class Form1
         // 
         // splitContainer1.Panel1
         // 
-        splitContainer1.Panel1.Controls.Add(treeView1);
+        splitContainer1.Panel1.Controls.Add(treeView);
         splitContainer1.Panel1.Controls.Add(panelButtons);
         // 
         // splitContainer1.Panel2
         // 
-        splitContainer1.Panel2.Controls.Add(listView1);
+        splitContainer1.Panel2.Controls.Add(listView);
         splitContainer1.Size = new Size(800, 450);
         splitContainer1.SplitterDistance = 261;
         splitContainer1.TabIndex = 0;
-        splitContainer1.SplitterMoved += splitContainer1_SplitterMoved;
         // 
         // treeView1
         // 
-        treeView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-        treeView1.Location = new Point(3, 42);
-        treeView1.Name = "treeView1";
-        treeView1.Size = new Size(255, 405);
-        treeView1.TabIndex = 0;
-        treeView1.NodeMouseDoubleClick += TreeView1_NodeMouseDoubleClick;
+        treeView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+        treeView.Location = new Point(3, 42);
+        treeView.Name = "treeView";
+        treeView.Size = new Size(255, 405);
+        treeView.TabIndex = 0;
+        treeView.NodeMouseDoubleClick += TreeViewNodeMouseDoubleClick;
         // 
         // panelButtons
         // 
@@ -135,19 +134,18 @@ partial class Form1
         // 
         // listView1
         // 
-        listView1.Columns.AddRange(new ColumnHeader[] { columnName, columnSize });
-        listView1.Dock = DockStyle.Fill;
-        listView1.FullRowSelect = true;
-        listView1.Location = new Point(0, 0);
-        listView1.MultiSelect = false;
-        listView1.Name = "listView1";
-        listView1.Size = new Size(535, 450);
-        listView1.TabIndex = 0;
-        listView1.UseCompatibleStateImageBehavior = false;
-        listView1.View = View.Details;
-        listView1.SelectedIndexChanged += listView1_SelectedIndexChanged;
-        listView1.DoubleClick += ListView1_DoubleClick;
-        listView1.MouseClick += ListView1_MouseClick;
+        listView.Columns.AddRange(new ColumnHeader[] { columnName, columnSize });
+        listView.Dock = DockStyle.Fill;
+        listView.FullRowSelect = true;
+        listView.Location = new Point(0, 0);
+        listView.MultiSelect = false;
+        listView.Name = "listView";
+        listView.Size = new Size(535, 450);
+        listView.TabIndex = 0;
+        listView.UseCompatibleStateImageBehavior = false;
+        listView.View = View.Details;
+        listView.DoubleClick += ListViewDoubleClick;
+        listView.MouseClick += ListViewMouseClick;
         // 
         // columnName
         // 
@@ -214,8 +212,8 @@ partial class Form1
     #endregion
 
     private System.Windows.Forms.SplitContainer splitContainer1;
-    private System.Windows.Forms.TreeView treeView1;
-    private System.Windows.Forms.ListView listView1;
+    private System.Windows.Forms.TreeView treeView;
+    private System.Windows.Forms.ListView listView;
     private System.Windows.Forms.Panel panelButtons;
     private System.Windows.Forms.Button btnRoot;
     private System.Windows.Forms.Button btnUp;

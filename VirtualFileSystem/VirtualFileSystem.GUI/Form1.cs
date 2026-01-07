@@ -14,25 +14,52 @@ public partial class Form1 : Form
     
     private void Form1_Load(object sender, EventArgs e)
     {
+        BuildTree();
         RefreshViews();
     }
     
     private void RefreshViews()
     {
-        listView1.Items.Clear();
+        listView.Items.Clear();
         var entries = _fs.Ls();
         
         foreach (var e in entries)
         {
             var item = new ListViewItem(e.Name);
-            item.SubItems.Add(e.Size.ToString());
+            
+            item.SubItems.Add($"{e.Size}");
             item.Tag = e;
-            listView1.Items.Add(item);
+            
+            listView.Items.Add(item);
+        }
+    }
+    
+    private void BuildTree()
+    {
+        treeView.Nodes.Clear();
+        
+        var root = new TreeNode("/")
+        {
+            Tag = Array.Empty<string>()
+        };
+        
+        treeView.Nodes.Add(root);
+        
+        BuildTreeRecursive(root, []);
+        root.Expand();
+        
+        _fs.Cd("\\");
+    }
+    
+    private void BuildTreeRecursive(TreeNode node, string[] segments)
+    {
+        _fs.Cd("\\");
+        foreach (var s in segments)
+        {
+            _fs.Cd(s);
         }
         
-        treeView1.Nodes.Clear();
-        
-        var root = new TreeNode("/");
+        var entries = _fs.Ls();
         foreach (var e in entries)
         {
             if (!e.IsDir)
@@ -40,22 +67,33 @@ public partial class Form1 : Form
                 continue;
             }
             
-            var node = new TreeNode(e.Name) { Tag = e };
-            root.Nodes.Add(node);
+            var childSegments = new string[segments.Length + 1];
+            for (int i = 0; i < segments.Length; i++)
+            {
+                childSegments[i] = segments[i];
+            }
+            
+            childSegments[segments.Length] = e.Name;
+            
+            var child = new TreeNode(e.Name)
+            {
+                Tag = childSegments
+            };
+            
+            node.Nodes.Add(child);
+            
+            BuildTreeRecursive(child, childSegments);
         }
-        
-        root.Expand();
-        treeView1.Nodes.Add(root);
     }
     
-    private void ListView1_DoubleClick(object? sender, EventArgs e)
+    private void ListViewDoubleClick(object? sender, EventArgs e)
     {
-        if (listView1.SelectedItems.Count == 0)
+        if (listView.SelectedItems.Count == 0)
         {
             return;
         }
         
-        var item = listView1.SelectedItems[0];
+        var item = listView.SelectedItems[0];
         var info = (FileEntryInfo)item.Tag!;
         if (!info.IsDir)
         {
@@ -66,14 +104,19 @@ public partial class Form1 : Form
         RefreshViews();
     }
     
-    private void TreeView1_NodeMouseDoubleClick(object? sender, TreeNodeMouseClickEventArgs e)
+    private void TreeViewNodeMouseDoubleClick(object? sender, TreeNodeMouseClickEventArgs e)
     {
-        if (e.Node?.Tag is not FileEntryInfo { IsDir: true } info)
+        if (e.Node?.Tag is not string[] segments)
         {
             return;
         }
         
-        _fs.Cd(info.Name);
+        _fs.Cd("\\");
+        foreach (var s in segments)
+        {
+            _fs.Cd(s);
+        }
+        
         RefreshViews();
     }
     
@@ -106,18 +149,18 @@ public partial class Form1 : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, ex.Message, @"Import failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, ex.Message, "Import failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
     
-    private void ListView1_MouseClick(object? sender, MouseEventArgs e)
+    private void ListViewMouseClick(object? sender, MouseEventArgs e)
     {
         if (e.Button != MouseButtons.Right)
         {
             return;
         }
         
-        var item = listView1.GetItemAt(e.X, e.Y);
+        var item = listView.GetItemAt(e.X, e.Y);
         if (item == null)
         {
             return;
@@ -127,12 +170,12 @@ public partial class Form1 : Form
         if (info.IsDir)
         {
             contextMenuDirs.Tag = info;
-            contextMenuDirs.Show(listView1, e.Location);
+            contextMenuDirs.Show(listView, e.Location);
         }
         else
         {
             contextMenuFiles.Tag = info;
-            contextMenuFiles.Show(listView1, e.Location);
+            contextMenuFiles.Show(listView, e.Location);
         }
     }
     
@@ -145,6 +188,7 @@ public partial class Form1 : Form
         
         using var sfd = new SaveFileDialog();
         sfd.FileName = info.Name;
+        
         if (sfd.ShowDialog() != DialogResult.OK)
         {
             return;
@@ -153,11 +197,11 @@ public partial class Form1 : Form
         try
         {
             _fs.Cpout(info.Name, sfd.FileName);
-            MessageBox.Show(this, @"Exported", @"Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(this, "Exported", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, ex.Message, @"Export failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, ex.Message, "Export failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
     
@@ -168,7 +212,7 @@ public partial class Form1 : Form
             return;
         }
         
-        var ok = MessageBox.Show(this, $@"Remove file '{info.Name}'?", @"Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        var ok = MessageBox.Show(this, $"Remove file '{info.Name}'?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
         if (ok != DialogResult.Yes)
         {
             return;
@@ -181,7 +225,7 @@ public partial class Form1 : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, ex.Message, @"Remove failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, ex.Message, "Remove failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
     
@@ -192,7 +236,9 @@ public partial class Form1 : Form
             return;
         }
         
-        var ok = MessageBox.Show(this, $@"Remove directory '{info.Name}'?", @"Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        var ok = MessageBox.Show(this, $"Remove directory '{info.Name}'?", "Confirm",
+            MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        
         if (ok != DialogResult.Yes)
         {
             return;
@@ -205,7 +251,7 @@ public partial class Form1 : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, ex.Message, @"Remove failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, ex.Message, "Remove failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
     
@@ -224,7 +270,7 @@ public partial class Form1 : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, ex.Message, @"Create folder failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, ex.Message, "Create folder failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
     
@@ -243,8 +289,8 @@ public partial class Form1 : Form
         var lbl = new Label { Left = 10, Top = 10, Text = text, AutoSize = true };
         var textBox = new TextBox { Left = 10, Top = 35, Width = 360 };
         
-        var confirm = new Button { Text = @"OK", Left = 220, Width = 75, Top = 70, DialogResult = DialogResult.OK };
-        var cancel = new Button { Text = @"Cancel", Left = 300, Width = 75, Top = 70, DialogResult = DialogResult.Cancel };
+        var confirm = new Button { Text = "OK", Left = 220, Width = 75, Top = 70, DialogResult = DialogResult.OK };
+        var cancel = new Button { Text = "Cancel", Left = 300, Width = 75, Top = 70, DialogResult = DialogResult.Cancel };
         
         prompt.Controls.Add(lbl);
         prompt.Controls.Add(textBox);
@@ -255,15 +301,5 @@ public partial class Form1 : Form
         prompt.CancelButton = cancel;
         
         return prompt.ShowDialog(this) == DialogResult.OK ? textBox.Text : null;
-    }
-    
-    private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
-    {
-        
-    }
-
-    private void listView1_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        
     }
 }

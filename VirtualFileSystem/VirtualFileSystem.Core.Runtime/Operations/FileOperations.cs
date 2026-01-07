@@ -106,7 +106,7 @@ public class FileOperations
         {
             return;
         }
-            
+        
         integrity.ClearChecksum(blockIndex);
         freeBlocks.MarkFree(blockIndex);
     }

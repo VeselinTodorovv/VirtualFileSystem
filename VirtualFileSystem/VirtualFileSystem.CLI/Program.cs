@@ -18,7 +18,7 @@ internal static class Program
         var services = new ServiceCollection();
         
         const string containerPath = "container.vfs";
-        const int blockSize = 2048;
+        const int blockSize = 128;
         
         services.AddScoped<IFileSystem>(_ => new FileSystemService(containerPath, blockSize));
         services.AddTransient<VfsShell>();

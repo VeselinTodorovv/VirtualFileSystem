@@ -14,4 +14,8 @@
       <ProjectReference Include="..\VirtualFileSystem.Core.Util\VirtualFileSystem.Core.Util.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="IO\Util\" />
+    </ItemGroup>
+
 </Project>

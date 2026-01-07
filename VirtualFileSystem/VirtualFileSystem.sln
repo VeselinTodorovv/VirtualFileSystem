@@ -6,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFileSystem.API", "Vi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFileSystem.CLI", "VirtualFileSystem.CLI\VirtualFileSystem.CLI.csproj", "{8173DBC0-3EE0-4F2B-AD68-B54DA99605AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualClassLibrary.GUI", "VirtualClassLibrary.GUI\VirtualClassLibrary.GUI.csproj", "{905FA5F4-25FC-4A45-83D2-903F77E48FF7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFileSystem.GUI", "VirtualFileSystem.GUI\VirtualFileSystem.GUI.csproj", "{905FA5F4-25FC-4A45-83D2-903F77E48FF7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{0B2C92DE-E972-4219-A371-0537BC27813B}"
 EndProject

@@ -18,8 +18,8 @@ public static class BlockResolver
             throw new ArgumentNullException(nameof(indirectCache), $"Indirect cache is required for indices >= {FileMetadataLayout.MaxBlocks - 1}");
         }
         
-        int entryInIndirect = (logicalIndex - IndirectTriggerIndex) * sizeof(int);
-        return BitConverter.ToInt32(indirectCache, entryInIndirect);
+        int entryIndirect = (logicalIndex - IndirectTriggerIndex) * sizeof(int);
+        return BitConverter.ToInt32(indirectCache, entryIndirect);
     }
     
     public static int GetIndirectOffset(int logicalIndex)

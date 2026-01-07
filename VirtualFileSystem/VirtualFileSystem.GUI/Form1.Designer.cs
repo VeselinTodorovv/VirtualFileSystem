@@ -1,4 +1,4 @@
-﻿namespace VirtualClassLibrary.GUI;
+﻿namespace VirtualFileSystem.GUI;
 
 partial class Form1
 {
@@ -79,6 +79,7 @@ partial class Form1
         treeView1.Name = "treeView1";
         treeView1.Size = new Size(255, 405);
         treeView1.TabIndex = 0;
+        treeView1.NodeMouseDoubleClick += TreeView1_NodeMouseDoubleClick;
         // 
         // panelButtons
         // 
@@ -110,6 +111,7 @@ partial class Form1
         btnRoot.TabIndex = 0;
         btnRoot.Text = "\\";
         btnRoot.UseVisualStyleBackColor = true;
+        btnRoot.Click += BtnRoot_Click;
         // 
         // btnUp
         // 
@@ -119,6 +121,7 @@ partial class Form1
         btnUp.TabIndex = 1;
         btnUp.Text = "..";
         btnUp.UseVisualStyleBackColor = true;
+        btnUp.Click += BtnUp_Click;
         // 
         // btnImport
         // 
@@ -128,6 +131,7 @@ partial class Form1
         btnImport.TabIndex = 2;
         btnImport.Text = "Import";
         btnImport.UseVisualStyleBackColor = true;
+        btnImport.Click += BtnImport_Click;
         // 
         // listView1
         // 
@@ -141,6 +145,9 @@ partial class Form1
         listView1.TabIndex = 0;
         listView1.UseCompatibleStateImageBehavior = false;
         listView1.View = View.Details;
+        listView1.SelectedIndexChanged += listView1_SelectedIndexChanged;
+        listView1.DoubleClick += ListView1_DoubleClick;
+        listView1.MouseClick += ListView1_MouseClick;
         // 
         // columnName
         // 
@@ -163,12 +170,14 @@ partial class Form1
         menuItemCpout.Name = "menuItemCpout";
         menuItemCpout.Size = new Size(107, 22);
         menuItemCpout.Text = "Cpout";
+        menuItemCpout.Click += MenuItemCpout_Click;
         // 
         // menuItemRm
         // 
         menuItemRm.Name = "menuItemRm";
         menuItemRm.Size = new Size(107, 22);
         menuItemRm.Text = "Rm";
+        menuItemRm.Click += MenuItemRm_Click;
         // 
         // contextMenuDirs
         // 
@@ -181,6 +190,7 @@ partial class Form1
         menuItemRd.Name = "menuItemRd";
         menuItemRd.Size = new Size(88, 22);
         menuItemRd.Text = "Rd";
+        menuItemRd.Click += MenuItemRd_Click;
         // 
         // Form1
         // 
@@ -198,6 +208,7 @@ partial class Form1
         contextMenuFiles.ResumeLayout(false);
         contextMenuDirs.ResumeLayout(false);
         ResumeLayout(false);
+        Load += Form1_Load!;
     }
 
     #endregion
